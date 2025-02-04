@@ -60,6 +60,7 @@ public class NetworkHandler {
                 ContextRequestPacket::handle
         );
 
+
     }
 
     public static void handleQRCodeRequest(String playerUUID, ServerPlayer sender) {

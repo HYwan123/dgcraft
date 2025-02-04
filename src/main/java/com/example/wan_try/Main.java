@@ -1,8 +1,6 @@
 package com.example.wan_try;
 
-import ca.weblite.objc.Client;
 import com.example.wan_try.dglab.*;
-import com.example.wan_try.gui.QRCodeScreen;
 import com.google.zxing.common.BitMatrix;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -12,12 +10,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.ClientRegistry;
-import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStartingEvent;
+import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -25,18 +23,14 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLDedicatedServerSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.loading.FMLEnvironment;
-import net.minecraftforge.network.NetworkEvent;
+import net.minecraftforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import com.example.wan_try.network.NetworkHandler;
 import com.example.wan_try.network.QRCodeRequestPacket;
 
-import java.lang.invoke.SerializedLambda;
 import java.net.InetSocketAddress;
-import java.util.List;
 
 @Mod("wan_dglab_test")
 @Mod.EventBusSubscriber
@@ -55,6 +49,8 @@ public class Main {
     private MinecraftServer server;
 
     private final MinecraftDgLabContext LocalContext = null;
+
+
 
     public Main() {
         instance = this;
@@ -156,7 +152,7 @@ public class Main {
 
     // 设置方法
     private void setup(final FMLCommonSetupEvent event) {
-        initializeDGLabClient();
+
 
 
     }
@@ -169,7 +165,15 @@ public class Main {
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         this.server = event.getServer();
+        initializeDGLabClient();
     }
+
+
+    @SubscribeEvent
+    public void onServerStopping(ServerStoppingEvent event) throws InterruptedException {
+        stopDGLabClient();
+    }
+
     // 辅助方法
     private void initializeDGLabClient() {
         LOGGER.info("Setting up DGLab client connection to {}:{}", 
@@ -188,6 +192,10 @@ public class Main {
         } catch (Exception e) {
             LOGGER.error("Failed to initialize DGLab client", e);
         }
+    }
+
+    private void stopDGLabClient() throws InterruptedException {
+        client.stop();
     }
 
     private void handleQRCodeGeneration(Player player, Level level) {

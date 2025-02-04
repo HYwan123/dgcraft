@@ -19,7 +19,7 @@ public class QrCodeHandler {
         Minecraft.getInstance().setScreen(screen);
     }
 
-    public static void closeScreen() {
+    public static void closeScreen(){
         qrCodeScreen.setContext(null);
         qrCodeScreen.setQrCode(null);
     };

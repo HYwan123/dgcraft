@@ -16,7 +16,15 @@ public class DGLabClient<T extends DGLabClient.DGLabContext> extends WebSocketSe
     private final InetSocketAddress reflectAddress;
 
     private IDgLabContextFactory<T> factory = null;
-    public DGLabClient(InetSocketAddress realAddress,InetSocketAddress reflectAddress,IDgLabContextFactory<T> factory){
+
+    @Override
+    public void stop() throws InterruptedException {
+        super.stop();
+        map.clear();
+
+    }
+
+    public DGLabClient(InetSocketAddress realAddress, InetSocketAddress reflectAddress, IDgLabContextFactory<T> factory){
         super(realAddress);
 
         if(reflectAddress == null){

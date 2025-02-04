@@ -26,6 +26,9 @@ public class QRCodeScreen extends Screen {
     private static final int BUTTON_WIDTH = 100;
     private static final int BUTTON_HEIGHT = 20;
     private boolean showQRCode = true;
+    private long lastUpdate = 0;
+    private static final long UPDATE_INTERVAL = 500; // 每500ms更新一次
+    private boolean wasConnected = false;
 
     public void setQrCode(BitMatrix qrCode) {
         this.qrCode = qrCode;
@@ -78,7 +81,7 @@ public class QRCodeScreen extends Screen {
 
     @Override
     public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-        if (showQRCode) {
+        if (context !=null && context.isEmpty()) {
             // 只渲染半透明背景
             this.renderBackground(poseStack);
 
@@ -119,56 +122,87 @@ public class QRCodeScreen extends Screen {
     }
 
     private void renderDeviceInfo(PoseStack poseStack) {
-        if (showQRCode) return;  // 扫描二维码时不显示设备信息
-
-//        IDGLabClient client = Main.getInstance().getClient();
-//        String playerUUID = Minecraft.getInstance().player.getStringUUID();
-//        List<DGLabClient.DGLabContext> contexts = client.getContext(playerUUID);
+        if (context != null && context.isEmpty()) return;
 
         // 居中显示信息面板
-        int infoX = this.width / 2 - 60;
-        int infoY = this.height / 2 - 75;
-        int lineHeight = 15;
+        int panelWidth = 200;
+        int panelHeight = context.isEmpty() ? 60 : 80 + context.size() * 100;
+        int infoX = (this.width - panelWidth) / 2;
+        int infoY = (this.height - panelHeight) / 2;
+        int lineHeight = 20;
 
-        // 渲染信息面板背景
-        fill(poseStack, infoX - 5, infoY - 5,
-             infoX + 120, infoY + 150,
-             0x88000000);
+        // 渲染主面板背景 - 使用渐变色
+        fillGradient(poseStack, 
+            infoX, infoY,
+            infoX + panelWidth, infoY + panelHeight,
+            0xCC2C2F33, 0xCC1F1F23);
 
-        // 显示连接状态
+        // 渲染边框
+        fill(poseStack, infoX, infoY, infoX + panelWidth, infoY + 2, 0xFF00FFFF); // 上边框
+        fill(poseStack, infoX, infoY + panelHeight - 2, infoX + panelWidth, infoY + panelHeight, 0xFF00FFFF); // 下边框
+        fill(poseStack, infoX, infoY, infoX + 2, infoY + panelHeight, 0xFF00FFFF); // 左边框
+        fill(poseStack, infoX + panelWidth - 2, infoY, infoX + panelWidth, infoY + panelHeight, 0xFF00FFFF); // 右边框
+
+        // 标题
+        String title = "设备状态监控";
+        int titleWidth = this.font.width(title);
+        drawString(poseStack, this.font, title, infoX + (panelWidth - titleWidth) / 2, infoY + 10, 0xFF00FFFF);
+        
+        // 连接状态指示器
         String connectionStatus = context.isEmpty() ?
-            "§c● 未连接设备" :
-            "§a● 已连接 " + context.size() + " 个设备";
-        drawString(poseStack, this.font, connectionStatus, infoX, infoY, 0xFFFFFF);
+            "§c⬤ 设备未连接" :
+            "§a⬤ 已连接 " + context.size() + " 台设备";
+        drawString(poseStack, this.font, connectionStatus, 
+            infoX + (panelWidth - this.font.width(connectionStatus)) / 2, 
+            infoY + 30, 0xFFFFFF);
 
-        // 如果有连接的设备，显示通道信息
-        if (context != null && !context.isEmpty()) {
+        if (!context.isEmpty()) {
+            int deviceY = infoY + 60;
+            
             for (int i = 0; i < context.size(); i++) {
-                DGLabClient.DGLabContext context = this.context.get(i);
-                infoY += lineHeight * 2;
+                DGLabClient.DGLabContext device = this.context.get(i);
+                
+                // 设备卡片背景
+                fillGradient(poseStack,
+                    infoX + 10, deviceY,
+                    infoX + panelWidth - 10, deviceY + 80,
+                    0x88000000, 0x88202020);
+                
+                // 设备标题
+                String deviceTitle = "§b⚡ 设备 " + (i + 1);
+                drawString(poseStack, this.font, deviceTitle, 
+                    infoX + 20, deviceY + 10, 0xFFFFFF);
 
-                // 设备标识
-                drawString(poseStack, this.font,
-                    "§l⚡ 设备 " + (i + 1),
-                    infoX, infoY, 0xFFFFFF);
+                // 通道进度条背景
+                fill(poseStack, infoX + 20, deviceY + 35, infoX + panelWidth - 20, deviceY + 45, 0x88000000);
+                fill(poseStack, infoX + 20, deviceY + 60, infoX + panelWidth - 20, deviceY + 70, 0x88000000);
 
-                // A通道信息
-                infoY += lineHeight;
-                String channelAInfo = String.format("§7▸ 通道A: §f%d§7/§f%d",
-                    context.getStrengthA(),
-                    context.getStrengthALimit());
-                drawString(poseStack, this.font, channelAInfo, infoX, infoY, 0xFFFFFF);
+                // 通道A进度条
+                float progressA = (float)device.getStrengthA() / device.getStrengthALimit();
+                fill(poseStack, 
+                    infoX + 20, deviceY + 35,
+                    infoX + 20 + (int)((panelWidth - 40) * progressA), deviceY + 45,
+                    0xFF00FFFF);
 
-                // B通道信息
-                infoY += lineHeight;
-                String channelBInfo = String.format("§7▸ 通道B: §f%d§7/§f%d",
-                    context.getStrengthB(),
-                    context.getStrengthBLimit());
-                drawString(poseStack, this.font, channelBInfo, infoX, infoY, 0xFFFFFF);
+                // 通道B进度条
+                float progressB = (float)device.getStrengthB() / device.getStrengthBLimit();
+                fill(poseStack,
+                    infoX + 20, deviceY + 60,
+                    infoX + 20 + (int)((panelWidth - 40) * progressB), deviceY + 70,
+                    0xFFFF00FF);
 
-                // 添加分隔线
-                infoY += lineHeight;
-                fill(poseStack, infoX, infoY, infoX + 110, infoY + 1, 0x44FFFFFF);
+                // 通道标签和数值
+                String channelALabel = String.format("§7通道 A: §f%d§7/§f%d", 
+                    device.getStrengthA(), device.getStrengthALimit());
+                drawString(poseStack, this.font, channelALabel, 
+                    infoX + 20, deviceY + 25, 0xFFFFFF);
+
+                String channelBLabel = String.format("§7通道 B: §f%d§7/§f%d",
+                    device.getStrengthB(), device.getStrengthBLimit());
+                drawString(poseStack, this.font, channelBLabel,
+                    infoX + 20, deviceY + 50, 0xFFFFFF);
+
+                deviceY += 90;
             }
         }
     }
@@ -176,29 +210,51 @@ public class QRCodeScreen extends Screen {
     @Override
     public void tick() {
         super.tick();
-
-        // 检查设备连接状态
-        if ( Minecraft.getInstance().player != null && context != null) {
-            List<MinecraftDgLabContext> contexts = context;
-
-            boolean isConnected = !contexts.isEmpty();
-
-            // 如果刚刚连接上（状态从未连接变为已连接）
-            if (isConnected) {
-                showQRCode = false;
-            }else {
-                showQRCode = true;
+        
+        long currentTime = System.currentTimeMillis();
+        // 只在需要时更新界面
+        if (currentTime - lastUpdate > UPDATE_INTERVAL) {
+            // 检查设备连接状态
+            IDGLabClient<MinecraftDgLabContext> client = Main.getInstance().getClient();
+            if (client != null && Minecraft.getInstance().player != null) {
+                String playerUUID = Minecraft.getInstance().player.getStringUUID();
+                List<MinecraftDgLabContext> contexts = client.getContext(playerUUID);
+                
+                boolean isConnected = !contexts.isEmpty();
+                
+                // 如果刚刚连接上（状态从未连接变为已连接）
+                if (isConnected && !wasConnected) {
+                    showQRCode = false;
+                }
+                
+                // 更新连接状态
+                wasConnected = isConnected;
             }
-        }
-
-        // 刷新界面
-        if (this.minecraft != null) {
-            this.minecraft.setScreen(this);
+            lastUpdate = currentTime;
         }
     }
 
     @Override
     public boolean isPauseScreen() {
+        return false; // 不暂停游戏
+    }
+
+    @Override
+    public boolean shouldCloseOnEsc() {
+        return true; // 允许使用ESC关闭界面
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (super.keyPressed(keyCode, scanCode, modifiers)) {
+            return true;
+        }
+        // 允许使用按键绑定
         return false;
     }
 }
