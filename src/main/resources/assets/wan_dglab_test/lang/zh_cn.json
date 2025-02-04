@@ -1,0 +1,14 @@
+{
+  "key.wan_dglab_test.open_qr": "打开二维码界面",
+  "key.categories.wan_dglab_test": "DGLab测试模组",
+  "gui.wan_dglab_test.qr_title": "扫描二维码连接设备",
+  "message.wan_dglab_test.qr_error": "生成二维码时发生错误",
+  "message.wan_dglab_test.qr_request_failed": "获取二维码失败，请重试",
+  "gui.wan_dglab_test.device_connected": "已连接 %d 个设备",
+  "gui.wan_dglab_test.device_disconnected": "未连接设备",
+  "gui.wan_dglab_test.device_number": "设备 %d",
+  "gui.wan_dglab_test.channel_info": "通道%s - 当前: %d / 上限: %d",
+  "gui.wan_dglab_test.status_connected": "已连接",
+  "gui.wan_dglab_test.status_disconnected": "未连接",
+  "gui.wan_dglab_test.qr_countdown": "二维码将在 %d 秒后隐藏"
+} 
