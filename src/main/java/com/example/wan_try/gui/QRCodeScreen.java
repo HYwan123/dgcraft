@@ -25,14 +25,7 @@ public class QRCodeScreen extends Screen {
     private static final int TEXTURE_HEIGHT = 256;
     private static final int BUTTON_WIDTH = 100;
     private static final int BUTTON_HEIGHT = 20;
-    private static final int INFO_COLOR = 0xFF333333;
-    private static final int WARNING_COLOR = 0xFFFF0000;
-    private static final int BACKGROUND_COLOR = 0xFF2C2C2C;
-    private static final int PANEL_COLOR = 0xFF3C3F41;
-    private static final int BORDER_COLOR = 0xFF4C5052;
-    private static final int TITLE_COLOR = 0xFFCCCCCC;
     private boolean showQRCode = true;
-    private boolean wasConnected = false; // 添加标记来追踪连接状态变化
 
     public void setQrCode(BitMatrix qrCode) {
         this.qrCode = qrCode;
@@ -49,7 +42,7 @@ public class QRCodeScreen extends Screen {
         super(title);
         this.qrCode = qrCode;
         this.context = context;
-        
+
         // 在构造函数中检查设备连接状态
 //        IDGLabClient client = Main.getInstance().getClient();
 //        if (client != null && Minecraft.getInstance().player != null) {
@@ -88,7 +81,7 @@ public class QRCodeScreen extends Screen {
         if (showQRCode) {
             // 只渲染半透明背景
             this.renderBackground(poseStack);
-            
+
             // 渲染二维码
             int qrSize = Math.min(qrCode.getWidth(), qrCode.getHeight());
             int scale = 3;
@@ -96,26 +89,26 @@ public class QRCodeScreen extends Screen {
             int qrTop = (this.height - qrSize * scale) / 2;
 
             // 渲染二维码背景（白色）
-            fill(poseStack, qrLeft - 5, qrTop - 5, 
-                 qrLeft + qrSize * scale + 5, qrTop + qrSize * scale + 5, 
+            fill(poseStack, qrLeft - 5, qrTop - 5,
+                 qrLeft + qrSize * scale + 5, qrTop + qrSize * scale + 5,
                  0xFFFFFFFF);
 
             // 渲染二维码（黑色）
             for (int y = 0; y < qrSize; y++) {
                 for (int x = 0; x < qrSize; x++) {
                     if (qrCode.get(x, y)) {
-                        fill(poseStack, 
-                             qrLeft + x * scale, 
-                             qrTop + y * scale, 
-                             qrLeft + x * scale + scale, 
-                             qrTop + y * scale + scale, 
+                        fill(poseStack,
+                             qrLeft + x * scale,
+                             qrTop + y * scale,
+                             qrLeft + x * scale + scale,
+                             qrTop + y * scale + scale,
                              0xFF000000);
                     }
                 }
             }
 
             // 渲染标题
-            drawCenteredString(poseStack, this.font, this.title, 
+            drawCenteredString(poseStack, this.font, this.title,
                 this.width / 2, qrTop - 20, 0xFFFFFF);
         } else {
             // 当二维码隐藏时，渲染设备信息
@@ -144,7 +137,7 @@ public class QRCodeScreen extends Screen {
 
         // 显示连接状态
         String connectionStatus = context.isEmpty() ?
-            "§c● 未连接设备" : 
+            "§c● 未连接设备" :
             "§a● 已连接 " + context.size() + " 个设备";
         drawString(poseStack, this.font, connectionStatus, infoX, infoY, 0xFFFFFF);
 
@@ -155,21 +148,21 @@ public class QRCodeScreen extends Screen {
                 infoY += lineHeight * 2;
 
                 // 设备标识
-                drawString(poseStack, this.font, 
-                    "§l⚡ 设备 " + (i + 1), 
+                drawString(poseStack, this.font,
+                    "§l⚡ 设备 " + (i + 1),
                     infoX, infoY, 0xFFFFFF);
 
                 // A通道信息
                 infoY += lineHeight;
-                String channelAInfo = String.format("§7▸ 通道A: §f%d§7/§f%d", 
-                    context.getStrengthA(), 
+                String channelAInfo = String.format("§7▸ 通道A: §f%d§7/§f%d",
+                    context.getStrengthA(),
                     context.getStrengthALimit());
                 drawString(poseStack, this.font, channelAInfo, infoX, infoY, 0xFFFFFF);
 
                 // B通道信息
                 infoY += lineHeight;
-                String channelBInfo = String.format("§7▸ 通道B: §f%d§7/§f%d", 
-                    context.getStrengthB(), 
+                String channelBInfo = String.format("§7▸ 通道B: §f%d§7/§f%d",
+                    context.getStrengthB(),
                     context.getStrengthBLimit());
                 drawString(poseStack, this.font, channelBInfo, infoX, infoY, 0xFFFFFF);
 
@@ -183,13 +176,13 @@ public class QRCodeScreen extends Screen {
     @Override
     public void tick() {
         super.tick();
-        
+
         // 检查设备连接状态
         if ( Minecraft.getInstance().player != null && context != null) {
             List<MinecraftDgLabContext> contexts = context;
-            
+
             boolean isConnected = !contexts.isEmpty();
-            
+
             // 如果刚刚连接上（状态从未连接变为已连接）
             if (isConnected) {
                 showQRCode = false;

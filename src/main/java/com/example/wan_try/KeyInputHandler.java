@@ -70,10 +70,9 @@ public class KeyInputHandler {
     }
 
     private static void showQRCode(BitMatrix qrcode) {
-        QRCodeScreen screen = Main.getInstance().getQrCodeScreen();
-        screen.setQrCode(qrcode);
-        screen.setContext(Main.getInstance().getClient().getContext(mc.player.getStringUUID()));
-        Minecraft.getInstance().setScreen(screen);
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT,()->()->QrCodeHandler.showQrCodeScreen(qrcode));
         LOGGER.info("Opened QR code screen");
     }
+
+
 }

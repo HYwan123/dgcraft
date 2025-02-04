@@ -39,6 +39,12 @@ public class ClientConfigHandler {
             .comment("是否启用受伤默认波形")
             .define("enable_damage_waveform", true);
 
+    public static final ForgeConfigSpec.BooleanValue pasento = BUILDER
+            .comment("是否启用百分比计算")
+            .define("%hunt_damage", false);
+
+
+
     public static final ForgeConfigSpec.IntValue DAMAGE_WAVEFORM_DURATION = BUILDER
             .comment("受伤后波形持续时间（以毫秒为单位）")
             .defineInRange("damage_waveform_duration", 1000, 0, 10000);

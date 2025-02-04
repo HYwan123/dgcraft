@@ -1,20 +1,23 @@
 package com.example.wan_try;
 
+import ca.weblite.objc.Client;
 import com.example.wan_try.dglab.*;
 import com.example.wan_try.gui.QRCodeScreen;
 import com.google.zxing.common.BitMatrix;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.ClientRegistry;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -22,6 +25,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLDedicatedServerSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.network.NetworkEvent;
@@ -29,8 +33,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import com.example.wan_try.network.NetworkHandler;
 import com.example.wan_try.network.QRCodeRequestPacket;
-import net.minecraftforge.network.NetworkHooks;
+
+import java.lang.invoke.SerializedLambda;
 import java.net.InetSocketAddress;
+import java.util.List;
 
 @Mod("wan_dglab_test")
 @Mod.EventBusSubscriber
@@ -46,14 +52,10 @@ public class Main {
     private static Main instance;
     private DGLabClient<MinecraftDgLabContext> client;
     private final FeedbackGenerator feedbackGenerator;
+    private MinecraftServer server;
 
     private final MinecraftDgLabContext LocalContext = null;
 
-    public QRCodeScreen getQrCodeScreen() {
-        return qrCodeScreen;
-    }
-
-    private QRCodeScreen qrCodeScreen = new QRCodeScreen(new TextComponent("扫描二维码连接设备"),null,null);
     public Main() {
         instance = this;
         feedbackGenerator = new FeedbackGenerator();
@@ -85,45 +87,48 @@ public class Main {
     public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         Player player = event.getPlayer();
         Level level = player.level;
-        if(!client.getContext(player.getStringUUID()).isEmpty() && !Minecraft.getInstance().level.isClientSide()) {
-            for (MinecraftDgLabContext minecraftDgLabContext : client.getContext(player.getStringUUID())) {
-                minecraftDgLabContext.notifyPlayer();
-            }
-        }
         LOGGER.info("Player {} logging in on side {}", 
             player.getDisplayName().getString(), 
             level.isClientSide() ? "CLIENT" : "SERVER"
         );
-
-
         handleQRCodeGeneration(player, level);
         sendWelcomeMessage(player, level);
     }
 
     @SubscribeEvent
-    public void onPlayerDeath(PlayerEvent event) {
+    public void onPlayerDeath(LivingDeathEvent event) {
         if (event.getEntity() instanceof Player player) {
 
             LOGGER.info("Player {} died, sending death feedback", player.getDisplayName().getString());
-            feedbackGenerator.sendDeathFeedback(player, client);
+            if(ClientConfigHandler.pasento.get()){
+                feedbackGenerator.sendDeathFeedback(player, client);
+            }
+            else{
+                feedbackGenerator.sendDeathFeedbackWan(player, client);
+            }
+
         }
     }
 
 
 
-
-
     @SubscribeEvent
     public void onPlayerExit(PlayerEvent.PlayerLoggedOutEvent event){
-        if(event.getEntity() instanceof Player player) {
-
-            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-                qrCodeScreen.setContext(null);
-                qrCodeScreen.setQrCode(null);
-            });
-            LOGGER.info(FMLEnvironment.dist.isClient());
-            DistExecutor.safeRunWhenOn(Dist.DEDICATED_SERVER, () ->() -> client.getContext(player.getStringUUID()).forEach(DGLabClient.DGLabContext::disconnect));
+        if (event.getEntity() instanceof Player player) {
+            if(player.isLocalPlayer()){
+                DistExecutor.unsafeRunWhenOn(Dist.CLIENT, ()-> QrCodeHandler::closeScreen);
+            }
         }
+//                if(event.getEntity() instanceof Player player) {
+//
+//            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
+//                qrCodeScreen.setContext(null);
+//                qrCodeScreen.setQrCode(null);
+//            });
+//            LOGGER.info(FMLEnvironment.dist.isClient());
+//            LOGGER.info(Minecraft.getInstance().level.isClientSide());
+//            client.getContext(player.getStringUUID()).forEach(DGLabClient.DGLabContext::disconnect);
+//        }
     }
 
     @SubscribeEvent
@@ -137,8 +142,13 @@ public class Main {
                 reducedDamage,
                 originalDamage
             );
+            if(ClientConfigHandler.pasento.get()){
+                feedbackGenerator.sendHurtFeedback(player, client, originalDamage);
+            }
+            else{
+                feedbackGenerator.sendHurtFeedbackWan(player, client, originalDamage);
+            }
 
-            feedbackGenerator.sendHurtFeedbackWan(player, client, originalDamage);
             event.setAmount(reducedDamage);
             player.displayClientMessage(new TextComponent("你受到了 " + reducedDamage + " 点伤害！"), true);
         }
@@ -147,13 +157,19 @@ public class Main {
     // 设置方法
     private void setup(final FMLCommonSetupEvent event) {
         initializeDGLabClient();
+
+
     }
+
 
     private void doClientStuff(final FMLClientSetupEvent event) {
         LOGGER.debug("Registering keybindings");
         ClientRegistry.registerKeyBinding(KeybindHandler.OPEN_QR_KEY);
     }
-
+    @SubscribeEvent
+    public void onServerStarting(ServerStartingEvent event) {
+        this.server = event.getServer();
+    }
     // 辅助方法
     private void initializeDGLabClient() {
         LOGGER.info("Setting up DGLab client connection to {}:{}", 
@@ -190,15 +206,14 @@ public class Main {
                 }
             }
         } catch (Exception e) {
+
             LOGGER.error("Failed to handle QR code generation for player {}", 
                 player.getDisplayName().getString(), e);
         }
     }
 
     private void showQRCode(BitMatrix qrcode) {
-        this.qrCodeScreen.setQrCode(qrcode);
-        Minecraft.getInstance().setScreen(this.qrCodeScreen);
-        LOGGER.info("Opened QR code screen");
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () ->()-> QrCodeHandler.showQrCode(qrcode));
     }
 
     private void sendWelcomeMessage(Player player, Level level) {
@@ -216,5 +231,9 @@ public class Main {
 
     public IDGLabClient<MinecraftDgLabContext> getClient() {
         return client;
+    }
+
+    public MinecraftServer getServer() {
+        return server;
     }
 }

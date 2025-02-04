@@ -106,13 +106,47 @@ public class FeedbackGenerator {
         context.minusStrengthChange(minusValue);
     }
 
+    public void sendDeathFeedbackWan(Player player, IDGLabClient<MinecraftDgLabContext> client) {
+
+        List<MinecraftDgLabContext> contexts = client.getContext(player.getStringUUID());
+        for (MinecraftDgLabContext context : contexts) {
+            try {
+                CompletableFuture future = CompletableFuture.supplyAsync(()->{
+
+                    context.setStrengthA(context.getStrengthALimit());
+                    context.setStrengthB(context.getStrengthBLimit());
+                    player.displayClientMessage(new TextComponent("你死了"), true);
+                    WaveSequence sequence = creatHuntSquareWave();
+                    context.clearWaveForm("A");
+                    context.sendWaveForm("A", sequence);
+                    context.clearWaveForm("B");
+                    context.sendWaveForm("B", sequence);
+                    try {
+                        sleep(ClientConfigHandler.DAMAGE_WAVEFORM_DURATION.get());
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    context.setStrengthA(0);
+                    context.setStrengthB(0);
+                    return null;
+                });
+
+            } catch (Exception e) {
+                LOGGER.error("Failed to send hurt feedback for player {}",
+                        player.getDisplayName().getString(), e);
+            }
+        }
+
+
+    }
     public void sendHurtFeedbackWan(Player player, IDGLabClient<MinecraftDgLabContext> client, float originalDamage) {
         double addValue = ClientConfigHandler.DAMAGE_INTENSITY_INCREMENT.get()*originalDamage;
-        addValue = Math.min(addValue, 200);
+
         System.out.println("\naddValue:"+addValue);
         System.out.println("\nClientConfigHandler.DAMAGE_INTENSITY_INCREMENT.get():"+ClientConfigHandler.DAMAGE_INTENSITY_INCREMENT.get());
         System.out.println("\noriginalDamage:"+originalDamage);
         List<MinecraftDgLabContext> contexts = client.getContext(player.getStringUUID());
+        addValue = Math.min(addValue, 200);
         for (MinecraftDgLabContext context : contexts) {
             try {
                 double finalAddValue = addValue;

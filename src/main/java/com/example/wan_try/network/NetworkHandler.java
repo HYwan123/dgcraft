@@ -1,6 +1,7 @@
 package com.example.wan_try.network;
 
 import com.example.wan_try.Main;
+import com.example.wan_try.QrCodeHandler;
 import com.example.wan_try.dglab.MinecraftDgLabContext;
 import com.example.wan_try.gui.QRCodeScreen;
 import com.google.zxing.WriterException;
@@ -10,6 +11,8 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
@@ -73,9 +76,6 @@ public class NetworkHandler {
     }
 
     public static void handleQRCodeResponse(BitMatrix qrCode) {
-        QRCodeScreen screen = Main.getInstance().getQrCodeScreen();
-
-        screen.setQrCode(qrCode);
-        Minecraft.getInstance().setScreen(screen);
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> ()->QrCodeHandler.handleQRCodeResponse(qrCode));
     }
 } 

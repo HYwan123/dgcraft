@@ -1,16 +1,12 @@
 package com.example.wan_try.dglab;
 
-import com.example.wan_try.Main;
-import com.example.wan_try.network.NetworkHandler;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
-import net.minecraft.client.Minecraft;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
-
 import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -118,13 +114,13 @@ public class DGLabClient<T extends DGLabClient.DGLabContext> extends WebSocketSe
         System.out.println("Binding client ID: " + clientId);
         T context = this.factory.createDgLabContext(conn, pack.getTargetId(),clientId);
         map.put(conn, context);
-        if(Objects.equals(pack.getClientId(), Minecraft.getInstance().player.getStringUUID())){
-           if(Minecraft.getInstance().level.isClientSide()){
-               if(context instanceof MinecraftDgLabContext context1) {
-                   Main.getInstance().getQrCodeScreen().setContext(Arrays.stream(new MinecraftDgLabContext[]{context1}).toList());
-               }
-           }
-        }
+//        if(Objects.equals(pack.getClientId(), Minecraft.getInstance().player.getStringUUID())){
+//           if(Minecraft.getInstance().level.isClientSide()){
+//               if(context instanceof MinecraftDgLabContext context1) {
+//                   QrCodeHandler.getQrCodeScreen().setContext(Arrays.stream(new MinecraftDgLabContext[]{context1}).toList());
+//               }
+//           }
+//        }
         pack.setMessage("200");
         conn.send(pack.toJson());
     }

@@ -1,14 +1,14 @@
 package com.example.wan_try.dglab;
 
 import com.example.wan_try.Main;
+import com.example.wan_try.QrCodeHandler;
 import com.example.wan_try.network.NetworkHandler;
-import com.example.wan_try.network.QRCodeRequestPacket;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkEvent;
 import org.slf4j.Logger;
@@ -49,13 +49,14 @@ public class MinecraftDgLabContext extends DGLabClient.DGLabContext {
 
 
     public void notifyPlayer(){
-        IntegratedServer server = Minecraft.getInstance().getSingleplayerServer();
-        if(server != null){
+        DistExecutor.unsafeCallWhenOn(Dist.DEDICATED_SERVER,()->()->{
+            var server = Main.getInstance().getServer();
             UUID playerId = UUID.fromString(this.getClientId());
-            if(playerId.equals(Minecraft.getInstance().player.getUUID())) return;
+//        if(playerId.equals(Minecraft.getInstance().player.getUUID())) return;
             ServerPlayer player = server.getPlayerList().getPlayer(playerId);
             NetworkHandler.INSTANCE.sendTo(this,player.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
-        }
+            return null;
+        });
 
     }
 
@@ -91,7 +92,7 @@ public class MinecraftDgLabContext extends DGLabClient.DGLabContext {
     public static void handle(MinecraftDgLabContext msg, Supplier<NetworkEvent.Context> ctx) {
         ctx.get().enqueueWork(() -> {
             // 处理逻辑在NetworkHandler中实现
-            Main.getInstance().getQrCodeScreen().setContext(Arrays.stream(new MinecraftDgLabContext[] {msg}).toList());
+            QrCodeHandler.getQrCodeScreen().setContext(Arrays.stream(new MinecraftDgLabContext[] {msg}).toList());
         });
         ctx.get().setPacketHandled(true);
     }
