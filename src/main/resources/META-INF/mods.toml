@@ -64,3 +64,6 @@ wan first try. But dglab
     versionRange="[1.18.2,1.19)"
     ordering="NONE"
     side="BOTH"
+
+[[mixins]]
+config="mixin.wan_try.json"

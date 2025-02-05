@@ -8,6 +8,8 @@ import net.minecraft.client.player.LocalPlayer;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
+
+import java.net.BindException;
 import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -151,6 +153,10 @@ public class DGLabClient<T extends DGLabClient.DGLabContext> extends WebSocketSe
     @Override
     public void onError(WebSocket conn, Exception ex) {
         map.remove(conn);
+//        if(ex instanceof BindException){
+//
+//        }
+
     }
 
     @Override

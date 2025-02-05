@@ -52,8 +52,9 @@ public class KeyInputHandler {
     private static void handleQRCodeGeneration(Player player, Level level) {
         try {
             if (level.isClientSide()) {
-                if (Minecraft.getInstance().hasSingleplayerServer()) { // 检查是否是房主
+                if (ClientConfigHandler.client.get()) { // 检查是否是房主
                     // 本地生成二维码
+                    if(Main.getInstance().getClient() == null) Main.getInstance().initializeDGLabClient();
                     BitMatrix qrcode = Main.getInstance().getClient().genQrCode(player.getStringUUID());
                     showQRCode(qrcode);
                 } else {

@@ -19,12 +19,14 @@ import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.IExtensionPoint;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.network.NetworkConstants;
 import net.minecraftforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -75,6 +77,19 @@ public class Main {
     private void registerEventListeners() {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::doClientStuff);
+//        ModLoadingContext.get().registerExtensionPoint(IExtensionPoint.DisplayTest.class, () -> new IExtensionPoint.DisplayTest(() -> IExtensionPoint.DisplayTest.IGNORESERVERONLY, (a, b) -> true));
+        ModLoadingContext.get().registerExtensionPoint(
+                IExtensionPoint.DisplayTest.class,
+                () -> new IExtensionPoint.DisplayTest(
+                        // 客户端版本字符串 - 由于这是客户端mod，实际上不会被发送
+                        () -> "anything. i don't care",
+
+                        // 远程版本验证逻辑
+                        // remoteversionstring: 服务器版本字符串
+                        // networkbool: 网络协议兼容标志
+                        (remoteversionstring, networkbool) -> networkbool // 接受任何服务器版本
+                )
+        );
         MinecraftForge.EVENT_BUS.register(this);
         LOGGER.debug("Registered event listeners");
     }
@@ -174,10 +189,12 @@ public class Main {
     @SubscribeEvent
     public void onServerStopping(ServerStoppingEvent event) throws InterruptedException {
         stopDGLabClient();
+        this.server = null;
     }
 
+
     // 辅助方法
-    private void initializeDGLabClient() {
+    public void initializeDGLabClient() {
         LOGGER.info("Setting up DGLab client connection to {}:{}", 
             ClientConfigHandler.SERVER_IP.get(),
             ClientConfigHandler.SERVER_PORT.get()

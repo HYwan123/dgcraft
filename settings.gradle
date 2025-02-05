@@ -1,6 +1,7 @@
 pluginManagement {
     repositories {
         maven { url = 'https://maven.parchmentmc.org' } // Add this line
+        maven {url="repo.spongepowered.org/maven"}
         maven { url = 'https://maven.minecraftforge.net' }
         mavenCentral()
     }

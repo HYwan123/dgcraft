@@ -1,5 +1,6 @@
 package com.example.wan_try.network;
 
+import com.example.wan_try.ClientConfigHandler;
 import com.example.wan_try.Main;
 import com.example.wan_try.QrCodeHandler;
 import com.example.wan_try.dglab.MinecraftDgLabContext;
@@ -13,6 +14,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.network.ConfigSync;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
@@ -25,9 +27,17 @@ public class NetworkHandler {
     public static final SimpleChannel INSTANCE = NetworkRegistry.newSimpleChannel(
         new ResourceLocation("wan_dglab_test", "main"),
         () -> PROTOCOL_VERSION,
-        PROTOCOL_VERSION::equals,
-        PROTOCOL_VERSION::equals
+        NetworkHandler::judgeVersion,
+            (x)->true
+
     );
+
+    public static boolean judgeVersion(String x){
+        return ClientConfigHandler.client.get() || PROTOCOL_VERSION.equals(x);
+    }
+
+
+
 
     public static void init() {
         int id = 0;
