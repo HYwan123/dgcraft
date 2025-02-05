@@ -4,6 +4,7 @@ import com.example.wan_try.dglab.*;
 import com.google.zxing.common.BitMatrix;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
@@ -81,6 +82,7 @@ public class Main {
     // 事件处理方法
     @SubscribeEvent
     public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
+
         Player player = event.getPlayer();
         Level level = player.level;
         LOGGER.info("Player {} logging in on side {}", 

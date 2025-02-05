@@ -81,7 +81,7 @@ public class QRCodeScreen extends Screen {
 
     @Override
     public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-        if (context !=null && context.isEmpty()) {
+        if (context ==null || context.isEmpty()) {
             // 只渲染半透明背景
             this.renderBackground(poseStack);
 
@@ -122,7 +122,7 @@ public class QRCodeScreen extends Screen {
     }
 
     private void renderDeviceInfo(PoseStack poseStack) {
-        if (context != null && context.isEmpty()) return;
+        if (context == null || context.isEmpty()) return;
 
         // 居中显示信息面板
         int panelWidth = 200;
