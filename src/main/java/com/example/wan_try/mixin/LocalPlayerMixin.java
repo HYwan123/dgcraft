@@ -55,36 +55,36 @@ public abstract class LocalPlayerMixin extends Player {
             }
         }
     }
-
-
-    @Unique private float forge_1_18_2_40_2_21_mdk$lastHealth = getHealth();
-    @Inject(method = "tick",at=@At("HEAD"))
-    private void onTick(CallbackInfo ci){
-        forge_1_18_2_40_2_21_mdk$tickCount++;
-        boolean a = Main.getInstance().getServer() == null;
-        boolean b = FMLEnvironment.dist.isClient();
-        boolean c = ClientConfigHandler.client.get();
-        if(!(a && b && c)) return;
-
-        if(getHealth() < forge_1_18_2_40_2_21_mdk$lastHealth&& forge_1_18_2_40_2_21_mdk$tickCount >20){
-
-            forge_1_18_2_40_2_21_mdk$tickCount =0;
-            System.out.println("添加强度"+(forge_1_18_2_40_2_21_mdk$lastHealth-getHealth()));
-            forge_1_18_2_40_2_21_mdk$onHurt(Math.max(forge_1_18_2_40_2_21_mdk$lastHealth-getHealth() ,0));
-
-        }
-        forge_1_18_2_40_2_21_mdk$lastHealth=getHealth();
-    }
-    @Unique
-    private void forge_1_18_2_40_2_21_mdk$onHurt(float damage) {
-        if(damage <= 0.0f) return;
-        if (ClientConfigHandler.pasento.get()) {
-            this.forge_1_18_2_40_2_21_mdk$generator.sendHurtFeedback(this, Main.getInstance().getClient(), damage);
-        } else {
-            this.forge_1_18_2_40_2_21_mdk$generator.sendHurtFeedbackWan(this, Main.getInstance().getClient(), damage);
-        }
-
-    }
+//
+//
+//    @Unique private float forge_1_18_2_40_2_21_mdk$lastHealth = getHealth();
+//    @Inject(method = "tick",at=@At("HEAD"))
+//    private void onTick(CallbackInfo ci){
+//        forge_1_18_2_40_2_21_mdk$tickCount++;
+//        boolean a = Main.getInstance().getServer() == null;
+//        boolean b = FMLEnvironment.dist.isClient();
+//        boolean c = ClientConfigHandler.client.get();
+//        if(!(a && b && c)) return;
+//
+//        if(getHealth() < forge_1_18_2_40_2_21_mdk$lastHealth&& forge_1_18_2_40_2_21_mdk$tickCount >20){
+//
+//            forge_1_18_2_40_2_21_mdk$tickCount =0;
+//            System.out.println("添加强度"+(forge_1_18_2_40_2_21_mdk$lastHealth-getHealth()));
+//            forge_1_18_2_40_2_21_mdk$onHurt(Math.max(forge_1_18_2_40_2_21_mdk$lastHealth-getHealth() ,0));
+//
+//        }
+//        forge_1_18_2_40_2_21_mdk$lastHealth=getHealth();
+//    }
+//    @Unique
+//    private void forge_1_18_2_40_2_21_mdk$onHurt(float damage) {
+//        if(damage <= 0.0f) return;
+//        if (ClientConfigHandler.pasento.get()) {
+//            this.forge_1_18_2_40_2_21_mdk$generator.sendHurtFeedback(this, Main.getInstance().getClient(), damage);
+//        } else {
+//            this.forge_1_18_2_40_2_21_mdk$generator.sendHurtFeedbackWan(this, Main.getInstance().getClient(), damage);
+//        }
+//
+//    }
 
 
     @Unique
