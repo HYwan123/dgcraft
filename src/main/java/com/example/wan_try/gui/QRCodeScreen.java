@@ -113,6 +113,11 @@ public class QRCodeScreen extends Screen {
             // 渲染标题
             drawCenteredString(poseStack, this.font, this.title,
                 this.width / 2, qrTop - 20, 0xFFFFFF);
+            if(Main.getInstance().getClient() != null){
+                DGLabClient client = (DGLabClient) Main.getInstance().getClient();
+                drawCenteredString(poseStack, this.font,client.getLastException().getMessage(),
+                        this.width / 2, qrTop - 40, 0xFFFFFF);
+            }
         } else {
             // 当二维码隐藏时，渲染设备信息
             renderDeviceInfo(poseStack);

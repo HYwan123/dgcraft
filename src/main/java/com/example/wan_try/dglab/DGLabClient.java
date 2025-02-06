@@ -4,7 +4,9 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.TextComponent;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
@@ -12,12 +14,13 @@ import org.java_websocket.server.WebSocketServer;
 import java.net.BindException;
 import java.net.InetSocketAddress;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class DGLabClient<T extends DGLabClient.DGLabContext> extends WebSocketServer implements IDGLabClient<T> {
     private final HashMap<WebSocket,T> map = new HashMap<>();
     private final InetSocketAddress reflectAddress;
-
+    private Exception lastException;
     private IDgLabContextFactory<T> factory = null;
 
     @Override
@@ -153,6 +156,8 @@ public class DGLabClient<T extends DGLabClient.DGLabContext> extends WebSocketSe
     @Override
     public void onError(WebSocket conn, Exception ex) {
         map.remove(conn);
+        this.lastException = ex;
+
 //        if(ex instanceof BindException){
 //
 //        }
@@ -162,6 +167,10 @@ public class DGLabClient<T extends DGLabClient.DGLabContext> extends WebSocketSe
     @Override
     public void onStart() {
         System.out.println("started");
+    }
+
+    public Exception getLastException() {
+        return lastException;
     }
 
 
