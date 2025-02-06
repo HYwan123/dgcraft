@@ -9,7 +9,7 @@ plugins {
 }
 
 
-version = '1.0'
+version = '0.0.1-dev4'
 group = 'com.example.wan_try' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'wan_try'
 
