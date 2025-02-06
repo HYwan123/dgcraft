@@ -49,6 +49,7 @@ public abstract class LocalPlayerMixin extends Player {
                 if (pHealth <= 0.0f) {
                     forge_1_18_2_40_2_21_mdk$onDeath();
                 }
+                forge_1_18_2_40_2_21_mdk$onHurt(Math.max(getHealth() - pHealth,0));
                 //QrCodeHandler.getQrCodeScreen ().setContext(Main.getInstance().getClient().getContext(getStringUUID()));
                 //System.out.println("🔥 进入 hurtTo()，目标血量：" + pHealth);
                 //System.out.println("💖 当前血量：" + currentHealth);
@@ -75,16 +76,16 @@ public abstract class LocalPlayerMixin extends Player {
 //        }
 //        forge_1_18_2_40_2_21_mdk$lastHealth=getHealth();
 //    }
-//    @Unique
-//    private void forge_1_18_2_40_2_21_mdk$onHurt(float damage) {
-//        if(damage <= 0.0f) return;
-//        if (ClientConfigHandler.pasento.get()) {
-//            this.forge_1_18_2_40_2_21_mdk$generator.sendHurtFeedback(this, Main.getInstance().getClient(), damage);
-//        } else {
-//            this.forge_1_18_2_40_2_21_mdk$generator.sendHurtFeedbackWan(this, Main.getInstance().getClient(), damage);
-//        }
-//
-//    }
+    @Unique
+    private void forge_1_18_2_40_2_21_mdk$onHurt(float damage) {
+        if(damage <= 0.0f) return;
+        if (ClientConfigHandler.pasento.get()) {
+            this.forge_1_18_2_40_2_21_mdk$generator.sendHurtFeedback(this, Main.getInstance().getClient(), damage);
+        } else {
+            this.forge_1_18_2_40_2_21_mdk$generator.sendHurtFeedbackWan(this, Main.getInstance().getClient(), damage);
+        }
+
+    }
 
 
     @Unique

@@ -38,7 +38,7 @@ public abstract class ClientPacketListenerMixin implements ClientGamePacketListe
             var health = pPacket.getUnpackedData().stream().filter(x->x.getAccessor().equals(LivingEntityAccessor.getDataHealthId())).findFirst();
             if(!health.isEmpty()) {
                 float value = (float)health.get().getValue();
-                forge_1_18_2_40_2_21_mdk$onHurt(player,value-player.getHealth());
+                forge_1_18_2_40_2_21_mdk$onHurt(player,player.getHealth()-value);
             }
         }
         if (entity != null && pPacket.getUnpackedData() != null) {
