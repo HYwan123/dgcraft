@@ -38,10 +38,10 @@ public class QRCodeScreen extends Screen {
         this.context = context;
     }
 
-    private  BitMatrix qrCode = null;
+    private BitMatrix qrCode = null;
     private List<MinecraftDgLabContext> context = null;
 
-    public QRCodeScreen(Component title, BitMatrix qrCode,List<MinecraftDgLabContext> context) {
+    public QRCodeScreen(Component title, BitMatrix qrCode, List<MinecraftDgLabContext> context) {
         super(title);
         this.qrCode = qrCode;
         this.context = context;
@@ -68,12 +68,12 @@ public class QRCodeScreen extends Screen {
 
         // 添加关闭按钮
         Button closeButton = new Button(
-            this.width / 2 - BUTTON_WIDTH / 2,
-            this.guiTop + TEXTURE_HEIGHT + 10,
-            BUTTON_WIDTH,
-            BUTTON_HEIGHT,
-            new TranslatableComponent("gui.done"),
-            button -> this.onClose()
+                this.width / 2 - BUTTON_WIDTH / 2,
+                this.guiTop + TEXTURE_HEIGHT + 10,
+                BUTTON_WIDTH,
+                BUTTON_HEIGHT,
+                new TranslatableComponent("gui.done"),
+                button -> this.onClose()
         );
         closeButton.active = true;
         this.addRenderableWidget(closeButton);
@@ -81,7 +81,7 @@ public class QRCodeScreen extends Screen {
 
     @Override
     public void render(PoseStack poseStack, int mouseX, int mouseY, float partialTicks) {
-        if (context ==null || context.isEmpty()) {
+        if (context == null || context.isEmpty()) {
             // 只渲染半透明背景
             this.renderBackground(poseStack);
 
@@ -93,37 +93,40 @@ public class QRCodeScreen extends Screen {
 
             // 渲染二维码背景（白色）
             fill(poseStack, qrLeft - 5, qrTop - 5,
-                 qrLeft + qrSize * scale + 5, qrTop + qrSize * scale + 5,
-                 0xFFFFFFFF);
+                    qrLeft + qrSize * scale + 5, qrTop + qrSize * scale + 5,
+                    0xFFFFFFFF);
 
             // 渲染二维码（黑色）
             for (int y = 0; y < qrSize; y++) {
                 for (int x = 0; x < qrSize; x++) {
                     if (qrCode.get(x, y)) {
                         fill(poseStack,
-                             qrLeft + x * scale,
-                             qrTop + y * scale,
-                             qrLeft + x * scale + scale,
-                             qrTop + y * scale + scale,
-                             0xFF000000);
+                                qrLeft + x * scale,
+                                qrTop + y * scale,
+                                qrLeft + x * scale + scale,
+                                qrTop + y * scale + scale,
+                                0xFF000000);
                     }
                 }
             }
 
             // 渲染标题
             drawCenteredString(poseStack, this.font, this.title,
-                this.width / 2, qrTop - 20, 0xFFFFFF);
-            if(Main.getInstance().getClient() != null){
+                    this.width / 2, qrTop - 20, 0xFFFFFF);
+            if (Main.getInstance().getClient() != null) {
+
                 DGLabClient client = (DGLabClient) Main.getInstance().getClient();
                 // 渲染红色背景以突出显示错误信息
-                fill(poseStack, 
-                    this.width/2 - 100, qrTop - 45,
-                    this.width/2 + 100, qrTop - 25,
-                    0x77FF0000);
-                // 使用红色文字显示错误信息
-                drawCenteredString(poseStack, this.font, 
-                    "§c错误: " + client.getLastException().getMessage(),
-                    this.width / 2, qrTop - 40, 0xFFFFFF);
+                if (client.getLastException() != null) {
+                    fill(poseStack,
+                            this.width / 2 - 100, qrTop - 45,
+                            this.width / 2 + 100, qrTop - 25,
+                            0x77FF0000);
+                    // 使用红色文字显示错误信息
+                    drawCenteredString(poseStack, this.font,
+                            "§c错误: " + client.getLastException().getMessage(),
+                            this.width / 2, qrTop - 40, 0xFFFFFF);
+                }
             }
         } else {
             // 当二维码隐藏时，渲染设备信息
@@ -144,10 +147,10 @@ public class QRCodeScreen extends Screen {
         int lineHeight = 20;
 
         // 渲染主面板背景 - 使用渐变色
-        fillGradient(poseStack, 
-            infoX, infoY,
-            infoX + panelWidth, infoY + panelHeight,
-            0xCC2C2F33, 0xCC1F1F23);
+        fillGradient(poseStack,
+                infoX, infoY,
+                infoX + panelWidth, infoY + panelHeight,
+                0xCC2C2F33, 0xCC1F1F23);
 
         // 渲染边框
         fill(poseStack, infoX, infoY, infoX + panelWidth, infoY + 2, 0xFF00FFFF); // 上边框
@@ -159,60 +162,60 @@ public class QRCodeScreen extends Screen {
         String title = "设备状态监控";
         int titleWidth = this.font.width(title);
         drawString(poseStack, this.font, title, infoX + (panelWidth - titleWidth) / 2, infoY + 10, 0xFF00FFFF);
-        
+
         // 连接状态指示器
         String connectionStatus = context.isEmpty() ?
-            "§c⬤ 设备未连接" :
-            "§a⬤ 已连接 " + context.size() + " 台设备";
-        drawString(poseStack, this.font, connectionStatus, 
-            infoX + (panelWidth - this.font.width(connectionStatus)) / 2, 
-            infoY + 30, 0xFFFFFF);
+                "§c⬤ 设备未连接" :
+                "§a⬤ 已连接 " + context.size() + " 台设备";
+        drawString(poseStack, this.font, connectionStatus,
+                infoX + (panelWidth - this.font.width(connectionStatus)) / 2,
+                infoY + 30, 0xFFFFFF);
 
         if (!context.isEmpty()) {
             int deviceY = infoY + 60;
-            
+
             for (int i = 0; i < context.size(); i++) {
                 DGLabClient.DGLabContext device = this.context.get(i);
-                
+
                 // 设备卡片背景
                 fillGradient(poseStack,
-                    infoX + 10, deviceY,
-                    infoX + panelWidth - 10, deviceY + 80,
-                    0x88000000, 0x88202020);
-                
+                        infoX + 10, deviceY,
+                        infoX + panelWidth - 10, deviceY + 80,
+                        0x88000000, 0x88202020);
+
                 // 设备标题
                 String deviceTitle = "§b⚡ 设备 " + (i + 1);
-                drawString(poseStack, this.font, deviceTitle, 
-                    infoX + 20, deviceY + 10, 0xFFFFFF);
+                drawString(poseStack, this.font, deviceTitle,
+                        infoX + 20, deviceY + 10, 0xFFFFFF);
 
                 // 通道进度条背景
                 fill(poseStack, infoX + 20, deviceY + 35, infoX + panelWidth - 20, deviceY + 45, 0x88000000);
                 fill(poseStack, infoX + 20, deviceY + 60, infoX + panelWidth - 20, deviceY + 70, 0x88000000);
 
                 // 通道A进度条
-                float progressA = (float)device.getStrengthA() / device.getStrengthALimit();
-                fill(poseStack, 
-                    infoX + 20, deviceY + 35,
-                    infoX + 20 + (int)((panelWidth - 40) * progressA), deviceY + 45,
-                    0xFF00FFFF);
+                float progressA = (float) device.getStrengthA() / device.getStrengthALimit();
+                fill(poseStack,
+                        infoX + 20, deviceY + 35,
+                        infoX + 20 + (int) ((panelWidth - 40) * progressA), deviceY + 45,
+                        0xFF00FFFF);
 
                 // 通道B进度条
-                float progressB = (float)device.getStrengthB() / device.getStrengthBLimit();
+                float progressB = (float) device.getStrengthB() / device.getStrengthBLimit();
                 fill(poseStack,
-                    infoX + 20, deviceY + 60,
-                    infoX + 20 + (int)((panelWidth - 40) * progressB), deviceY + 70,
-                    0xFFFF00FF);
+                        infoX + 20, deviceY + 60,
+                        infoX + 20 + (int) ((panelWidth - 40) * progressB), deviceY + 70,
+                        0xFFFF00FF);
 
                 // 通道标签和数值
-                String channelALabel = String.format("§7通道 A: §f%d§7/§f%d", 
-                    device.getStrengthA(), device.getStrengthALimit());
-                drawString(poseStack, this.font, channelALabel, 
-                    infoX + 20, deviceY + 25, 0xFFFFFF);
+                String channelALabel = String.format("§7通道 A: §f%d§7/§f%d",
+                        device.getStrengthA(), device.getStrengthALimit());
+                drawString(poseStack, this.font, channelALabel,
+                        infoX + 20, deviceY + 25, 0xFFFFFF);
 
                 String channelBLabel = String.format("§7通道 B: §f%d§7/§f%d",
-                    device.getStrengthB(), device.getStrengthBLimit());
+                        device.getStrengthB(), device.getStrengthBLimit());
                 drawString(poseStack, this.font, channelBLabel,
-                    infoX + 20, deviceY + 50, 0xFFFFFF);
+                        infoX + 20, deviceY + 50, 0xFFFFFF);
 
                 deviceY += 90;
             }
@@ -222,7 +225,7 @@ public class QRCodeScreen extends Screen {
     @Override
     public void tick() {
         super.tick();
-        
+
         long currentTime = System.currentTimeMillis();
         // 只在需要时更新界面
         if (currentTime - lastUpdate > UPDATE_INTERVAL) {
@@ -231,14 +234,14 @@ public class QRCodeScreen extends Screen {
             if (client != null && Minecraft.getInstance().player != null) {
                 String playerUUID = Minecraft.getInstance().player.getStringUUID();
                 List<MinecraftDgLabContext> contexts = client.getContext(playerUUID);
-                
+
                 boolean isConnected = !contexts.isEmpty();
-                
+
                 // 如果刚刚连接上（状态从未连接变为已连接）
                 if (isConnected && !wasConnected) {
                     showQRCode = false;
                 }
-                
+
                 // 更新连接状态
                 wasConnected = isConnected;
             }
