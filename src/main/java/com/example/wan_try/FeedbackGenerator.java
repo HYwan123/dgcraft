@@ -140,8 +140,8 @@ public class FeedbackGenerator {
 
     }
     public void sendHurtFeedbackWan(Player player, IDGLabClient<MinecraftDgLabContext> client, float originalDamage) {
+        if(client == null) return;
         double addValue = ClientConfigHandler.DAMAGE_INTENSITY_INCREMENT.get()*originalDamage;
-
         System.out.println("\naddValue:"+addValue);
         System.out.println("\nClientConfigHandler.DAMAGE_INTENSITY_INCREMENT.get():"+ClientConfigHandler.DAMAGE_INTENSITY_INCREMENT.get());
         System.out.println("\noriginalDamage:"+originalDamage);

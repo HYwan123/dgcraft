@@ -1,14 +1,15 @@
 {
-    "required": true,
-    "minVersion": "0.8",
-    "package": "com.example.wan_try.mixin",
-    "refmap": "mixins.wan_try.refmap.json",
-    "compatibilityLevel": "JAVA_17",
-    "client": [
-        "LocalPlayerMixin"
-    ],
-
-    "injectors": {
-        "defaultRequire": 1
-    }
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.example.wan_try.mixin",
+  "refmap": "mixins.wan_try.refmap.json",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "ClientPacketListenerMixin",
+    "LocalPlayerMixin",
+    "LivingEntityAccessor"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
 }

@@ -37,6 +37,7 @@ public abstract class LocalPlayerMixin extends Player {
     @Inject(method = "hurtTo", at = @At("HEAD"))
 
     private void onHurt(float pHealth, CallbackInfo ci) {
+        if(Main.getInstance().getClient() == null) return;
         boolean a = Main.getInstance().getServer() == null;
         boolean b = FMLEnvironment.dist.isClient();
         boolean c = ClientConfigHandler.client.get();
