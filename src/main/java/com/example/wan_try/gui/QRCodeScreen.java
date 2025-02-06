@@ -115,8 +115,15 @@ public class QRCodeScreen extends Screen {
                 this.width / 2, qrTop - 20, 0xFFFFFF);
             if(Main.getInstance().getClient() != null){
                 DGLabClient client = (DGLabClient) Main.getInstance().getClient();
-                drawCenteredString(poseStack, this.font,client.getLastException().getMessage(),
-                        this.width / 2, qrTop - 40, 0xFFFFFF);
+                // 渲染红色背景以突出显示错误信息
+                fill(poseStack, 
+                    this.width/2 - 100, qrTop - 45,
+                    this.width/2 + 100, qrTop - 25,
+                    0x77FF0000);
+                // 使用红色文字显示错误信息
+                drawCenteredString(poseStack, this.font, 
+                    "§c错误: " + client.getLastException().getMessage(),
+                    this.width / 2, qrTop - 40, 0xFFFFFF);
             }
         } else {
             // 当二维码隐藏时，渲染设备信息
