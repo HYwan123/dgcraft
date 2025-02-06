@@ -35,7 +35,7 @@ import com.example.wan_try.network.QRCodeRequestPacket;
 
 import java.net.InetSocketAddress;
 
-@Mod("wan_dglab_test")
+@Mod("me_hywan_dgcraft")
 @Mod.EventBusSubscriber
 public class Main {
     // 常量定义
