@@ -4,14 +4,12 @@ import com.example.wan_try.ClientConfigHandler;
 import com.example.wan_try.FeedbackGenerator;
 import com.example.wan_try.Main;
 import com.example.wan_try.QrCodeHandler;
-import com.example.wan_try.dglab.MinecraftDgLabContext;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.fml.loading.FMLEnvironment;
-import org.lwjgl.system.CallbackI;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -31,8 +29,13 @@ public abstract class LocalPlayerMixin extends Player {
     @Shadow
     private boolean flashOnSetHealth;
 
+    @Shadow public abstract void tick();
+
+    @Unique
+    private int forge_1_18_2_40_2_21_mdk$tickCount =0;
 
     @Inject(method = "hurtTo", at = @At("HEAD"))
+
     private void onHurt(float pHealth, CallbackInfo ci) {
         boolean a = Main.getInstance().getServer() == null;
         boolean b = FMLEnvironment.dist.isClient();
@@ -44,12 +47,7 @@ public abstract class LocalPlayerMixin extends Player {
             if (this.flashOnSetHealth) {
                 if (pHealth <= 0.0f) {
                     forge_1_18_2_40_2_21_mdk$onDeath();
-                    return;
                 }
-
-                // 获取当前实例的血量
-                float currentHealth = getHealth();
-                forge_1_18_2_40_2_21_mdk$onHurt(Math.max(getHealth() - pHealth,0));
                 //QrCodeHandler.getQrCodeScreen ().setContext(Main.getInstance().getClient().getContext(getStringUUID()));
                 //System.out.println("🔥 进入 hurtTo()，目标血量：" + pHealth);
                 //System.out.println("💖 当前血量：" + currentHealth);
@@ -57,6 +55,25 @@ public abstract class LocalPlayerMixin extends Player {
         }
     }
 
+
+    @Unique private float forge_1_18_2_40_2_21_mdk$lastHealth = getHealth();
+    @Inject(method = "tick",at=@At("HEAD"))
+    private void onTick(CallbackInfo ci){
+        forge_1_18_2_40_2_21_mdk$tickCount++;
+        boolean a = Main.getInstance().getServer() == null;
+        boolean b = FMLEnvironment.dist.isClient();
+        boolean c = ClientConfigHandler.client.get();
+        if(!(a && b && c)) return;
+
+        if(getHealth() < forge_1_18_2_40_2_21_mdk$lastHealth&& forge_1_18_2_40_2_21_mdk$tickCount >20){
+
+            forge_1_18_2_40_2_21_mdk$tickCount =0;
+            System.out.println("添加强度"+(forge_1_18_2_40_2_21_mdk$lastHealth-getHealth()));
+            forge_1_18_2_40_2_21_mdk$onHurt(Math.max(forge_1_18_2_40_2_21_mdk$lastHealth-getHealth() ,0));
+
+        }
+        forge_1_18_2_40_2_21_mdk$lastHealth=getHealth();
+    }
     @Unique
     private void forge_1_18_2_40_2_21_mdk$onHurt(float damage) {
         if(damage <= 0.0f) return;
