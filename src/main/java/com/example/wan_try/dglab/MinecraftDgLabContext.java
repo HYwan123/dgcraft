@@ -15,46 +15,60 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.java_websocket.WebSocket;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 public class MinecraftDgLabContext extends DGLabClient.DGLabContext {
     private static final Logger LOGGER = LoggerFactory.getLogger(MinecraftDgLabContext.class);
-    
+
     // 存储每个通道当前活跃的波形
     private final Map<String, List<ActiveWaveform>> activeWaveforms = new ConcurrentHashMap<>();
     // 存储每个通道的基础强度
     private final Map<String, Integer> baseStrengths = new ConcurrentHashMap<>();
 
-    public MinecraftDgLabContext(WebSocket conn,String targetId,String clientId){
-        super(conn,targetId,clientId);
+    public MinecraftDgLabContext(WebSocket conn, String targetId, String clientId) {
+        super(conn, targetId, clientId);
+        super.strengthALimit.getSideB().onUpdate((val) -> {
+            notifyPlayer();
+        });
+        super.strengthBLimit.getSideB().onUpdate((val) -> {
+            notifyPlayer();
+        });
+        super.strengthA.getSideB().onUpdate((val) -> {
+            notifyPlayer();
+        });
+        super.strengthB.getSideB().onUpdate((val) -> {
+            notifyPlayer();
+        });
+
     }
 
 
+//
+//    @Override
+//    protected void setStrengthAWithOutNotify(int strengthA) {
+//        super.setStrengthAWithOutNotify(strengthA);
+//
+//        notifyPlayer();
+//    }
+//
+//    @Override
+//    protected void setStrengthBWithOutNotify(int strengthB) {
+//        super.setStrengthBWithOutNotify(strengthB);
+//        notifyPlayer();
+//    }
 
-    @Override
-    protected void setStrengthAWithOutNotify(int strengthA) {
-        super.setStrengthAWithOutNotify(strengthA);
 
-        notifyPlayer();
-    }
-
-    @Override
-    protected void setStrengthBWithOutNotify(int strengthB) {
-        super.setStrengthBWithOutNotify(strengthB);
-        notifyPlayer();
-    }
-
-
-
-    public void notifyPlayer(){
-        DistExecutor.unsafeCallWhenOn(Dist.DEDICATED_SERVER,()->()->{
+    //只会在服务端运行
+    public void notifyPlayer() {
+        DistExecutor.unsafeCallWhenOn(Dist.DEDICATED_SERVER, () -> () -> {
             var server = Main.getInstance().getServer();
             UUID playerId = UUID.fromString(this.getClientId());
 //        if(playerId.equals(Minecraft.getInstance().player.getUUID())) return;
             ServerPlayer player = server.getPlayerList().getPlayer(playerId);
-            NetworkHandler.INSTANCE.sendTo(this,player.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
+            NetworkHandler.INSTANCE.sendTo(this, player.connection.getConnection(), NetworkDirection.PLAY_TO_CLIENT);
             return null;
         });
 
@@ -71,31 +85,32 @@ public class MinecraftDgLabContext extends DGLabClient.DGLabContext {
         super.minusStrengthChange(minusValue);
         notifyPlayer();
     }
-    //TODO: why decode is called twice
-    public static void encode(MinecraftDgLabContext msg, FriendlyByteBuf buf) {
-        buf.writeInt(msg.getStrengthA());
-        buf.writeInt(msg.getStrengthB());
-        buf.writeInt(msg.getStrengthALimit());
-        buf.writeInt(msg.getStrengthBLimit());
 
-    }
-
-    public static MinecraftDgLabContext decode(FriendlyByteBuf buf) {
-        MinecraftDgLabContext context = new MinecraftDgLabContext(null,null,null);
-        context.setStrengthAWithOutNotify(buf.readInt());
-        context.setStrengthBWithOutNotify(buf.readInt());
-        context.setStrengthALimit(buf.readInt());
-        context.setStrengthBLimit(buf.readInt());
-        return context;
-    }
-
-    public static void handle(MinecraftDgLabContext msg, Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().enqueueWork(() -> {
-            // 处理逻辑在NetworkHandler中实现
-            QrCodeHandler.getQrCodeScreen().setContext(Arrays.stream(new MinecraftDgLabContext[] {msg}).toList());
-        });
-        ctx.get().setPacketHandled(true);
-    }
+//
+//    public static void encode(MinecraftDgLabContext msg, FriendlyByteBuf buf) {
+//        buf.writeInt(msg.strengthA.get());
+//        buf.writeInt(msg.strengthB.get());
+//        buf.writeInt(msg.getStrengthALimit());
+//        buf.writeInt(msg.getStrengthBLimit());
+//
+//    }
+//
+//    public static MinecraftDgLabContext decode(FriendlyByteBuf buf) {
+//        MinecraftDgLabContext context = new MinecraftDgLabContext(null,null,null);
+//        context.strengthA.getSideB().update(buf.readInt());
+//        context.strengthB.getSideB().update(buf.readInt());
+//        context.setStrengthALimit(buf.readInt());
+//        context.setStrengthBLimit(buf.readInt());
+//        return context;
+//    }
+//
+//    public static void handle(MinecraftDgLabContext msg, Supplier<NetworkEvent.Context> ctx) {
+//        ctx.get().enqueueWork(() -> {
+//            // 处理逻辑在NetworkHandler中实现
+//            QrCodeHandler.getQrCodeScreen().setContext(Arrays.stream(new MinecraftDgLabContext[] {msg}).toList());
+//        });
+//        ctx.get().setPacketHandled(true);
+//    }
 
     // 表示一个正在进行的波形
     private static class ActiveWaveform {
@@ -122,9 +137,9 @@ public class MinecraftDgLabContext extends DGLabClient.DGLabContext {
      */
     public void addWaveform(String channel, WaveSequence sequence, long durationMs, int priority) {
         activeWaveforms.computeIfAbsent(channel, k -> new ArrayList<>())
-            .add(new ActiveWaveform(sequence, durationMs, priority));
-        LOGGER.debug("Added waveform to channel {} with duration {}ms and priority {}", 
-            channel, durationMs, priority);
+                .add(new ActiveWaveform(sequence, durationMs, priority));
+        LOGGER.debug("Added waveform to channel {} with duration {}ms and priority {}",
+                channel, durationMs, priority);
     }
 
     /**
@@ -166,20 +181,20 @@ public class MinecraftDgLabContext extends DGLabClient.DGLabContext {
      */
     private WaveSequence mergeWaveforms(List<ActiveWaveform> waveforms) {
         WaveSequence merged = new WaveSequence();
-        
+
         // 获取所有序列中最长的波形长度
         int maxLength = waveforms.stream()
-            .mapToInt(w -> w.sequence.size())
-            .max()
-            .orElse(0);
+                .mapToInt(w -> w.sequence.size())
+                .max()
+                .orElse(0);
 
         for (int i = 0; i < maxLength; i++) {
             Wave mergedWave = null;
-            
+
             for (ActiveWaveform activeWave : waveforms) {
                 List<Wave> waves = activeWave.sequence;
                 if (i >= waves.size()) continue;
-                
+
                 Wave currentWave = waves.get(i);
                 if (mergedWave == null) {
                     mergedWave = currentWave;
@@ -187,7 +202,7 @@ public class MinecraftDgLabContext extends DGLabClient.DGLabContext {
                     mergedWave = mergeWaves(mergedWave, currentWave, activeWave.priority);
                 }
             }
-            
+
             if (mergedWave != null) {
                 merged.add(mergedWave);
             }
@@ -202,16 +217,16 @@ public class MinecraftDgLabContext extends DGLabClient.DGLabContext {
     private Wave mergeWaves(Wave wave1, Wave wave2, int priority2) {
         int[] mergedFreqs = new int[wave1.getFrequency().length];
         int[] mergedStrengths = new int[wave1.getStrength().length];
-        
+
         for (int i = 0; i < mergedFreqs.length; i++) {
             // 频率使用优先级高的波形的值
             mergedFreqs[i] = wave2.getFrequency()[i];
-            
+
             // 强度值叠加，但要考虑上限
             int strength = wave1.getStrength()[i] + wave2.getStrength()[i];
-            mergedStrengths[i] = Math.min(strength, getStrengthLimit()); 
+            mergedStrengths[i] = Math.min(strength, getStrengthLimit());
         }
-        
+
         return new Wave(mergedFreqs, mergedStrengths);
     }
 
@@ -219,7 +234,7 @@ public class MinecraftDgLabContext extends DGLabClient.DGLabContext {
      * 获取强度上限
      */
     private int getStrengthLimit() {
-        return Math.max(getStrengthALimit(), getStrengthBLimit());
+        return Math.max(getStrengthALimit().get(), getStrengthBLimit().get());
     }
 
     /**
@@ -247,7 +262,7 @@ public class MinecraftDgLabContext extends DGLabClient.DGLabContext {
     public void sendWaveForm(String channel, WaveSequence sequence) {
         // 添加到活跃波形列表
         addWaveform(channel, sequence, 1000, 1); // 默认1秒持续时间，优先级1
-        
+
         // 获取合并后的波形
         WaveSequence mergedSequence = getCurrentWaveform(channel);
         if (mergedSequence != null) {

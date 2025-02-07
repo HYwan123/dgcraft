@@ -1,25 +1,24 @@
 package com.example.wan_try.network;
 
-import com.example.wan_try.ClientConfigHandler;
+import com.example.wan_try.CommonConfigHandler;
 import com.example.wan_try.Main;
 import com.example.wan_try.QrCodeHandler;
+import com.example.wan_try.dglab.DGLabClient;
 import com.example.wan_try.dglab.MinecraftDgLabContext;
-import com.example.wan_try.gui.QRCodeScreen;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.DistExecutor;
-import net.minecraftforge.network.ConfigSync;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class NetworkHandler {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -33,7 +32,7 @@ public class NetworkHandler {
     );
 
     public static boolean judgeVersion(String x){
-        return ClientConfigHandler.client.get() || PROTOCOL_VERSION.equals(x);
+        return CommonConfigHandler.client.get() || PROTOCOL_VERSION.equals(x);
     }
 
 
@@ -57,10 +56,10 @@ public class NetworkHandler {
         );
         INSTANCE.registerMessage(
                 id++,
-                MinecraftDgLabContext.class,
-                MinecraftDgLabContext::encode,
-                MinecraftDgLabContext::decode,
-                MinecraftDgLabContext::handle
+                DgLabDataUpdatePacket.class,
+                DgLabDataUpdatePacket::encode,
+                DgLabDataUpdatePacket::decode,
+                DgLabDataUpdatePacket::handle
         );
         INSTANCE.registerMessage(
                 id++,
@@ -89,4 +88,10 @@ public class NetworkHandler {
     public static void handleQRCodeResponse(BitMatrix qrCode) {
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> ()->QrCodeHandler.handleQRCodeResponse(qrCode));
     }
-} 
+
+    public static void handleDgLabDataUpdate(DgLabDataUpdatePacket msg) {
+        var ctx = new MinecraftDgLabContext(null,null,null);
+
+        QrCodeHandler.getQrCodeScreen().setContext(Arrays.stream(new MinecraftDgLabContext[] {ctx}).toList());
+    }
+}

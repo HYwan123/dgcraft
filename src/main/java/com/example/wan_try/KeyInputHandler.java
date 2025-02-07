@@ -1,14 +1,9 @@
 package com.example.wan_try;
 
-import com.example.wan_try.dglab.DGLabClient;
-import com.example.wan_try.gui.QRCodeScreen;
 import com.example.wan_try.network.NetworkHandler;
 import com.example.wan_try.network.QRCodeRequestPacket;
-import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
@@ -16,7 +11,6 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 @Mod.EventBusSubscriber(value = Dist.CLIENT)
@@ -52,7 +46,7 @@ public class KeyInputHandler {
     private static void handleQRCodeGeneration(Player player, Level level) {
         try {
             if (level.isClientSide()) {
-                if (ClientConfigHandler.client.get()) { // 检查是否是房主
+                if (CommonConfigHandler.client.get()) { // 检查是否是房主
                     // 本地生成二维码
                     if(Main.getInstance().getClient() == null) Main.getInstance().initializeDGLabClient();
                     BitMatrix qrcode = Main.getInstance().getClient().genQrCode(player.getStringUUID());

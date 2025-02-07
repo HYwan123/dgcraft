@@ -11,7 +11,7 @@ public class QrCodeHandler {
         return qrCodeScreen;
     }
 
-    private static QRCodeScreen qrCodeScreen = new QRCodeScreen(new TextComponent("扫描二维码连接设备"),null,null);
+    private static final QRCodeScreen qrCodeScreen = new QRCodeScreen(new TextComponent("扫描二维码连接设备"),null,null);
 
     public static void handleQRCodeResponse(BitMatrix qrCode) {
         QRCodeScreen screen = QrCodeHandler.getQrCodeScreen();

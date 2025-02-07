@@ -1,6 +1,6 @@
 package com.example.wan_try.mixin;
 
-import com.example.wan_try.ClientConfigHandler;
+import com.example.wan_try.CommonConfigHandler;
 import com.example.wan_try.FeedbackGenerator;
 import com.example.wan_try.Main;
 import com.example.wan_try.QrCodeHandler;
@@ -40,7 +40,7 @@ public abstract class LocalPlayerMixin extends Player {
         if(Main.getInstance().getClient() == null) return;
         boolean a = Main.getInstance().getServer() == null;
         boolean b = FMLEnvironment.dist.isClient();
-        boolean c = ClientConfigHandler.client.get();
+        boolean c = CommonConfigHandler.client.get();
         QrCodeHandler.getQrCodeScreen().setContext(Main.getInstance().getClient().getContext(getStringUUID()));
         if (a && b && c) {
 
@@ -79,7 +79,7 @@ public abstract class LocalPlayerMixin extends Player {
     @Unique
     private void forge_1_18_2_40_2_21_mdk$onHurt(float damage) {
         if(damage <= 0.0f) return;
-        if (ClientConfigHandler.pasento.get()) {
+        if (CommonConfigHandler.pasento.get()) {
             this.forge_1_18_2_40_2_21_mdk$generator.sendHurtFeedback(this, Main.getInstance().getClient(), damage);
         } else {
             this.forge_1_18_2_40_2_21_mdk$generator.sendHurtFeedbackWan(this, Main.getInstance().getClient(), damage);
@@ -90,7 +90,7 @@ public abstract class LocalPlayerMixin extends Player {
 
     @Unique
     private void forge_1_18_2_40_2_21_mdk$onDeath() {
-        if (ClientConfigHandler.pasento.get()) {
+        if (CommonConfigHandler.pasento.get()) {
             this.forge_1_18_2_40_2_21_mdk$generator.sendDeathFeedback(this, Main.getInstance().getClient());
         } else {
             this.forge_1_18_2_40_2_21_mdk$generator.sendDeathFeedbackWan(this, Main.getInstance().getClient());

@@ -2,6 +2,7 @@ package com.example.wan_try;
 
 import com.example.wan_try.dglab.*;
 
+import com.example.wan_try.dglab.api.IDGLabClient;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.world.entity.player.Player;
 import org.apache.logging.log4j.LogManager;
@@ -22,7 +23,7 @@ public class FeedbackGenerator {
     public void sendDeathFeedback(Player player, IDGLabClient<MinecraftDgLabContext> client) {
         List<MinecraftDgLabContext> contexts = client.getContext(player.getStringUUID());
         LOGGER.debug("Found {} DGLab contexts for player {}", 
-            contexts.size(), 
+            contexts.size(),
             player.getDisplayName().getString()
         );
 
@@ -31,7 +32,7 @@ public class FeedbackGenerator {
                 sendDeathWaveSequence(context);
                 LOGGER.debug("Sent death feedback wave sequence for context {}", context);
             } catch (Exception e) {
-                LOGGER.error("Failed to send death feedback for player {}", 
+                LOGGER.error("Failed to send death feedback for player {}",
                     player.getDisplayName().getString(), e);
             }
         }
@@ -93,8 +94,8 @@ public class FeedbackGenerator {
     }
 
     private void setMaxStrength(DGLabClient.DGLabContext context) {
-        context.setStrengthA(context.getStrengthALimit());
-        context.setStrengthB(context.getStrengthBLimit());
+        context.getStrengthA().getSideB().update(context.getStrengthALimit().get());
+        context.getStrengthB().getSideB().update(context.getStrengthBLimit().get());
     }
 
 
@@ -111,23 +112,12 @@ public class FeedbackGenerator {
         List<MinecraftDgLabContext> contexts = client.getContext(player.getStringUUID());
         for (MinecraftDgLabContext context : contexts) {
             try {
-                CompletableFuture future = CompletableFuture.supplyAsync(()->{
-
-                    context.setStrengthA(context.getStrengthALimit());
-                    context.setStrengthB(context.getStrengthBLimit());
+                CompletableFuture<Object> future = CompletableFuture.supplyAsync(()->{
+                    setMaxStrength(context);
                     player.displayClientMessage(new TextComponent("你死了"), true);
-                    WaveSequence sequence = creatHuntSquareWave();
-                    context.clearWaveForm("A");
-                    context.sendWaveForm("A", sequence);
-                    context.clearWaveForm("B");
-                    context.sendWaveForm("B", sequence);
-                    try {
-                        sleep(ClientConfigHandler.DAMAGE_WAVEFORM_DURATION.get());
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                    context.setStrengthA(0);
-                    context.setStrengthB(0);
+                    sendDefinedWaveForm(context);
+                    context.getStrengthA().getSideB().update(0);
+                    context.getStrengthB().getSideB().update(0);
                     return null;
                 });
 
@@ -141,29 +131,20 @@ public class FeedbackGenerator {
     }
     public void sendHurtFeedbackWan(Player player, IDGLabClient<MinecraftDgLabContext> client, float originalDamage) {
         if(client == null) return;
-        double addValue = ClientConfigHandler.DAMAGE_INTENSITY_INCREMENT.get()*originalDamage;
+        double addValue = CommonConfigHandler.DAMAGE_INTENSITY_INCREMENT.get()*originalDamage;
         System.out.println("\naddValue:"+addValue);
-        System.out.println("\nClientConfigHandler.DAMAGE_INTENSITY_INCREMENT.get():"+ClientConfigHandler.DAMAGE_INTENSITY_INCREMENT.get());
+        System.out.println("\nClientConfigHandler.DAMAGE_INTENSITY_INCREMENT.get():"+ CommonConfigHandler.DAMAGE_INTENSITY_INCREMENT.get());
         System.out.println("\noriginalDamage:"+originalDamage);
         List<MinecraftDgLabContext> contexts = client.getContext(player.getStringUUID());
         addValue = Math.min(addValue, 200);
         for (MinecraftDgLabContext context : contexts) {
             try {
                 double finalAddValue = addValue;
-                CompletableFuture future = CompletableFuture.supplyAsync(()->{
+                CompletableFuture<Object> future = CompletableFuture.supplyAsync(()->{
 
                     addStrength(context,(int) finalAddValue);
                     player.displayClientMessage(new TextComponent("强度增加: " + (int) finalAddValue), true);
-                    WaveSequence sequence = creatHuntSquareWave();
-                    context.clearWaveForm("A");
-                    context.sendWaveForm("A", sequence);
-                    context.clearWaveForm("B");
-                    context.sendWaveForm("B", sequence);
-                    try {
-                        sleep(ClientConfigHandler.DAMAGE_WAVEFORM_DURATION.get());
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
+                    sendDefinedWaveForm(context);
                     minusStrength(context, (int) finalAddValue);
                     return null;
                 });
@@ -177,13 +158,26 @@ public class FeedbackGenerator {
 
     }
 
+    private void sendDefinedWaveForm(MinecraftDgLabContext context) {
+        WaveSequence sequence = creatHuntSquareWave();
+        context.clearWaveForm("A");
+        context.sendWaveForm("A", sequence);
+        context.clearWaveForm("B");
+        context.sendWaveForm("B", sequence);
+        try {
+            sleep(CommonConfigHandler.DAMAGE_WAVEFORM_DURATION.get());
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public WaveSequence creatHuntSquareWave(){
         WaveSequence sequence = new WaveSequence();
         Wave wave = new Wave(
                 new int[]{20, 20, 20, 20},
                 new int[]{100, 100, 100, 100}
         );
-        int count=ClientConfigHandler.DAMAGE_WAVEFORM_DURATION.get()/25;
+        int count= CommonConfigHandler.DAMAGE_WAVEFORM_DURATION.get()/25;
         for(int i = 0; i < count; i++) {
             sequence.add(wave);
         }

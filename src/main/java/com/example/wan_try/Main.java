@@ -1,10 +1,10 @@
 package com.example.wan_try;
 
 import com.example.wan_try.dglab.*;
+import com.example.wan_try.dglab.api.IDGLabClient;
 import com.google.zxing.common.BitMatrix;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
@@ -26,8 +26,6 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.network.NetworkConstants;
-import net.minecraftforge.network.PacketDistributor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import com.example.wan_try.network.NetworkHandler;
@@ -70,7 +68,7 @@ public class Main {
     }
 
     private void registerConfigs() {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ClientConfigHandler.CLIENT_CONFIG);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, CommonConfigHandler.CLIENT_CONFIG);
         LOGGER.debug("Registered client config");
     }
 
@@ -113,7 +111,7 @@ public class Main {
         if (event.getEntity() instanceof Player player) {
 
             LOGGER.info("Player {} died, sending death feedback", player.getDisplayName().getString());
-            if(ClientConfigHandler.pasento.get()){
+            if(CommonConfigHandler.pasento.get()){
                 feedbackGenerator.sendDeathFeedback(player, client);
             }
             else{
@@ -155,7 +153,7 @@ public class Main {
                 reducedDamage,
                 originalDamage
             );
-            if(ClientConfigHandler.pasento.get()){
+            if(CommonConfigHandler.pasento.get()){
                 feedbackGenerator.sendHurtFeedback(player, client, originalDamage);
             }
             else{
@@ -196,14 +194,14 @@ public class Main {
     // 辅助方法
     public void initializeDGLabClient() {
         LOGGER.info("Setting up DGLab client connection to {}:{}", 
-            ClientConfigHandler.SERVER_IP.get(),
-            ClientConfigHandler.SERVER_PORT.get()
+            CommonConfigHandler.SERVER_IP.get(),
+            CommonConfigHandler.SERVER_PORT.get()
         );
         
         try {
             client = new DGLabClient<MinecraftDgLabContext>(
-                new InetSocketAddress(ClientConfigHandler.SERVER_IP.get(), ClientConfigHandler.SERVER_PORT.get()),
-                new InetSocketAddress(ClientConfigHandler.SERVER_Reflect_IP.get(), ClientConfigHandler.SERVER_Reflect_PORT.get()),
+                new InetSocketAddress(CommonConfigHandler.SERVER_IP.get(), CommonConfigHandler.SERVER_PORT.get()),
+                new InetSocketAddress(CommonConfigHandler.SERVER_Reflect_IP.get(), CommonConfigHandler.SERVER_Reflect_PORT.get()),
                     new MinecraftDgLabContextFactory()
             );
             client.start();

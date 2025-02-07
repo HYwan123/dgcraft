@@ -1,24 +1,21 @@
 package com.example.wan_try.dglab;
 
+import com.example.wan_try.dglab.api.IDGLabClient;
+import com.example.wan_try.dglab.api.IDgLabContextFactory;
+import com.example.wan_try.dglab.sync.Reactive;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.network.chat.TextComponent;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 
-import java.net.BindException;
 import java.net.InetSocketAddress;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class DGLabClient<T extends DGLabClient.DGLabContext> extends WebSocketServer implements IDGLabClient<T> {
-    private final HashMap<WebSocket,T> map = new HashMap<>();
+    private final HashMap<WebSocket, T> map = new HashMap<>();
     private final InetSocketAddress reflectAddress;
     private Exception lastException;
     private IDgLabContextFactory<T> factory = null;
@@ -30,17 +27,17 @@ public class DGLabClient<T extends DGLabClient.DGLabContext> extends WebSocketSe
 
     }
 
-    public DGLabClient(InetSocketAddress realAddress, InetSocketAddress reflectAddress, IDgLabContextFactory<T> factory){
+    public DGLabClient(InetSocketAddress realAddress, InetSocketAddress reflectAddress, IDgLabContextFactory<T> factory) {
         super(realAddress);
 
-        if(reflectAddress == null){
+        if (reflectAddress == null) {
             reflectAddress = realAddress;
         }
-        if(factory == null){
+        if (factory == null) {
             factory = new IDgLabContextFactory() {
                 @Override
                 public DGLabContext createDgLabContext(WebSocket conn, String targetId, String clientId) {
-                    return new DGLabContext(conn,targetId,clientId);
+                    return new DGLabContext(conn, targetId, clientId);
                 }
             };
         }
@@ -48,38 +45,37 @@ public class DGLabClient<T extends DGLabClient.DGLabContext> extends WebSocketSe
         this.reflectAddress = reflectAddress;
     }
 
-    public DGLabClient(InetSocketAddress realAddress,InetSocketAddress reflectAddress){
-        this(realAddress,reflectAddress,null);
+    public DGLabClient(InetSocketAddress realAddress, InetSocketAddress reflectAddress) {
+        this(realAddress, reflectAddress, null);
     }
 
-    public DGLabClient(InetSocketAddress address){
-        this(address,null,null);
+    public DGLabClient(InetSocketAddress address) {
+        this(address, null, null);
     }
 
     // "https://www.dungeon-lab.com/app-download.php#DGLAB-SOCKET#ws://39.108.168.199:9999/"
 
     @Override
     public BitMatrix genQrCode(String clientID) throws WriterException {
-        String fullUrl = "https://www.dungeon-lab.com/app-download.php#DGLAB-SOCKET" + "#" + "ws://"+this.reflectAddress.getHostString()+":"+this.reflectAddress.getPort() +"/" + clientID;
+        String fullUrl = "https://www.dungeon-lab.com/app-download.php#DGLAB-SOCKET" + "#" + "ws://" + this.reflectAddress.getHostString() + ":" + this.reflectAddress.getPort() + "/" + clientID;
         System.out.println("QR URL: " + fullUrl);
         QRCodeWriter qrCodeWriter = new QRCodeWriter();
         BitMatrix bitMatrix = qrCodeWriter.encode(fullUrl, BarcodeFormat.QR_CODE, 25, 25);
         return bitMatrix;
     }
 
-    private String genID(){
+    private String genID() {
         return String.valueOf(new Random().nextInt(114514));
     }
+
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         String id = genID();
         System.out.println("New connection opened");
         System.out.println("Connection ID: " + id);
         System.out.println("Remote socket address: " + conn.getRemoteSocketAddress());
-        conn.send(DgLabPack.createBindPack(id,"","targetId").toJson());
+        conn.send(DgLabPack.createBindPack(id, "", "targetId").toJson());
     }
-
-
 
 
     @Override
@@ -103,22 +99,24 @@ public class DGLabClient<T extends DGLabClient.DGLabContext> extends WebSocketSe
     private void onMsg(WebSocket conn, DgLabPack pack) {
         // Handle regular messages
         System.out.println("Received message from " + pack.getTargetId() + ": " + pack.getMessage());
-        resolveStrength(pack.getMessage(),map.get(conn));
+        resolveStrength(pack.getMessage(), map.get(conn));
         System.out.println(map.get(conn));
     }
 
-    private void resolveStrength(String rawStrength,DGLabContext context){
+    private void resolveStrength(String rawStrength, DGLabContext context) {
         var result = Arrays.stream(Arrays.stream(rawStrength.split("-")).toList().get(1).split("\\+")).toList();
-        context.setStrengthAWithOutNotify(Integer.parseInt(result.get(0)));
-        context.setStrengthBWithOutNotify(Integer.parseInt(result.get(1)));
-        context.setStrengthALimit(Integer.parseInt(result.get(2)));
-        context.setStrengthBLimit(Integer.parseInt(result.get(3)));
+//        context.setStrengthAWithOutNotify(Integer.parseInt(result.get(0)));
+//        context.setStrengthBWithOutNotify(Integer.parseInt(result.get(1)));
+        context.strengthA.getSideA().update(Integer.parseInt(result.get(0)));
+        context.strengthB.getSideA().update(Integer.parseInt(result.get(1)));
+        context.strengthA.getSideA().update(Integer.parseInt(result.get(2)));
+        context.strengthA.getSideA().update(Integer.parseInt(result.get(3)));
 
     }
 
     @Override
-    public List<T> getContext(String id){
-        return map.values().stream().filter((x)-> Objects.equals(x.getClientId(), id)).toList();
+    public List<T> getContext(String id) {
+        return map.values().stream().filter((x) -> Objects.equals(x.getClientId(), id)).toList();
     }
 
 
@@ -126,7 +124,7 @@ public class DGLabClient<T extends DGLabClient.DGLabContext> extends WebSocketSe
         // Handle binding of client ID to connection
         String clientId = pack.getClientId();
         System.out.println("Binding client ID: " + clientId);
-        T context = this.factory.createDgLabContext(conn, pack.getTargetId(),clientId);
+        T context = this.factory.createDgLabContext(conn, pack.getTargetId(), clientId);
         map.put(conn, context);
 //        if(Objects.equals(pack.getClientId(), Minecraft.getInstance().player.getStringUUID())){
 //           if(Minecraft.getInstance().level.isClientSide()){
@@ -151,8 +149,6 @@ public class DGLabClient<T extends DGLabClient.DGLabContext> extends WebSocketSe
     }
 
 
-
-
     @Override
     public void onError(WebSocket conn, Exception ex) {
         map.remove(conn);
@@ -175,56 +171,36 @@ public class DGLabClient<T extends DGLabClient.DGLabContext> extends WebSocketSe
 
 
     public static class DGLabContext {
-        private final AtomicInteger strengthA = new AtomicInteger(0);
-        private final AtomicInteger strengthB = new AtomicInteger(0);
-
-        public DGLabContext() {
-
-        }
-
-        public void disconnect(){
-            this.conn.close();
-        }
-
-        public void setStrengthALimit(int strengthALimit) {
-            this.strengthALimit = strengthALimit;
-        }
-
-        public void setStrengthBLimit(int strengthBLimit) {
-            this.strengthBLimit = strengthBLimit;
-        }
-
-        private int strengthALimit = 100;
-
-
-        private int strengthBLimit = 100;
-
-        public int getStrengthA() {
-            return strengthA.get();
-        }
+        protected final Reactive<Integer> strengthA = new Reactive<>(0);
+        protected final Reactive<Integer> strengthB = new Reactive<>(0);
+        protected final Reactive<Integer> strengthALimit = new Reactive<>(100);
+        protected final Reactive<Integer> strengthBLimit = new Reactive<>(100);
         private String targetId;
+        private String clientId;
+        private WebSocket conn;
 
-        public String getTargetId() {
-            return targetId;
-        }
-
+        public Reactive<Integer> getStrengthA() {return strengthA;}
+        public Reactive<Integer> getStrengthB() {return strengthB;}
+        public Reactive<Integer> getStrengthALimit() {return strengthALimit;}
+        public Reactive<Integer> getStrengthBLimit() {return strengthBLimit;}
         public String getClientId() {
             return clientId;
         }
+        public WebSocket getConn() {return conn;}
 
-        public WebSocket getConn() {
-            return conn;
-        }
-
-        private String clientId;
-        private WebSocket conn;
-        public DGLabContext(WebSocket conn,String targetId,String clientId){
+        public DGLabContext(WebSocket conn, String targetId, String clientId) {
             this.conn = conn;
             this.targetId = targetId;
             this.clientId = clientId;
+            this.strengthA.getSideA().onUpdate((x)->{
+                notifyChange();
+            });
+            this.strengthA.getSideA().onUpdate((x)->{
+                notifyChange();
+            });
         }
 
-        public void notifyChange(){
+        public void notifyChange() {
             // Format: strength-channel+mode+value
             // Channel: 1=A, 2=B
             // Mode: 0=decrease, 1=increase, 2=set absolute
@@ -240,7 +216,8 @@ public class DGLabClient<T extends DGLabClient.DGLabContext> extends WebSocketSe
             this.conn.send(DgLabPack.createMessagePack(clientId, this.targetId, command.toString()).toJson());
             //发送一个数据同步包给这个Context对应的玩家
         }
-        public void addStrengthChange(int addValue){
+
+        public void addStrengthChange(int addValue) {
             // Format: strength-channel+mode+value
             // Channel: 1=A, 2=B
             // Mode: 0=decrease, 1=increase, 2=set absolute
@@ -255,7 +232,8 @@ public class DGLabClient<T extends DGLabClient.DGLabContext> extends WebSocketSe
             command.append("2+1+").append(addValue);
             this.conn.send(DgLabPack.createMessagePack(clientId, this.targetId, command.toString()).toJson());
         }
-        public void minusStrengthChange(int minusValue){
+
+        public void minusStrengthChange(int minusValue) {
             // Format: strength-channel+mode+value
             // Channel: 1=A, 2=B
             // Mode: 0=decrease, 1=increase, 2=set absolute
@@ -277,43 +255,34 @@ public class DGLabClient<T extends DGLabClient.DGLabContext> extends WebSocketSe
         }
 
 
-        public void clearWaveForm(String channel){
+        public void clearWaveForm(String channel) {
 
-            conn.send(DgLabPack.createMessagePack(clientId, targetId, "clear-" + (channel.equals("A")?"1":"2")).toJson());
-        }
-
-        protected void setStrengthAWithOutNotify(int strengthA){
-            this.strengthA.set(strengthA);
-        }
-        protected void setStrengthBWithOutNotify(int strengthB){
-            this.strengthB.set(strengthB);
-        }
-        public synchronized void setStrengthA(int strengthA) {
-            if (strengthA >= 0 && strengthA <= strengthALimit) {
-                this.strengthA.set(strengthA);
-                notifyChange();
-            }
+            conn.send(DgLabPack.createMessagePack(clientId, targetId, "clear-" + (channel.equals("A") ? "1" : "2")).toJson());
         }
 
-        public synchronized int getStrengthB() {
-            return strengthB.get();
-        }
-
-        public synchronized void setStrengthB(int strengthB) {
-            if (strengthB >= 0 && strengthB <= strengthBLimit) {
-                this.strengthB.set(strengthB);
-                notifyChange();
-            }
-        }
-
-        public int getStrengthALimit() {
-            return strengthALimit;
-        }
-
-        public int getStrengthBLimit() {
-            return strengthBLimit;
-        }
-
+//        protected void setStrengthAWithOutNotify(int strengthA){
+//            this.strengthA.set(strengthA);
+//        }
+//        protected void setStrengthBWithOutNotify(int strengthB){
+//            this.strengthB.set(strengthB);
+//        }
+//        public synchronized void setStrengthA(int strengthA) {
+//            if (strengthA >= 0 && strengthA <= strengthALimit.get()) {
+//                this.strengthA.set(strengthA);
+//                notifyChange();
+//            }
+//        }
+//
+//        public synchronized int getStrengthB() {
+//            return strengthB.get();
+//        }
+//
+//        public synchronized void setStrengthB(int strengthB) {
+//            if (strengthB >= 0 && strengthB <= strengthBLimit.get()) {
+//                this.strengthB.set(strengthB);
+//                notifyChange();
+//            }
+//        }
         @Override
         public String toString() {
             return "DGLabContext{" +

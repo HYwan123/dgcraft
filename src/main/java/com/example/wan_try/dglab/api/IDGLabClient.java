@@ -1,5 +1,6 @@
-package com.example.wan_try.dglab;
+package com.example.wan_try.dglab.api;
 
+import com.example.wan_try.dglab.DGLabClient;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 

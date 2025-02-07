@@ -2,7 +2,7 @@ package com.example.wan_try;
 
 import net.minecraftforge.common.ForgeConfigSpec;
 
-public class ClientConfigHandler {
+public class CommonConfigHandler {
     public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static final ForgeConfigSpec CLIENT_CONFIG;
 

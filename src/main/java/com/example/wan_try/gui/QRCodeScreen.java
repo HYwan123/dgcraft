@@ -2,7 +2,7 @@ package com.example.wan_try.gui;
 
 import com.example.wan_try.Main;
 import com.example.wan_try.dglab.DGLabClient;
-import com.example.wan_try.dglab.IDGLabClient;
+import com.example.wan_try.dglab.api.IDGLabClient;
 import com.example.wan_try.dglab.MinecraftDgLabContext;
 import com.google.zxing.common.BitMatrix;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -193,14 +193,14 @@ public class QRCodeScreen extends Screen {
                 fill(poseStack, infoX + 20, deviceY + 60, infoX + panelWidth - 20, deviceY + 70, 0x88000000);
 
                 // 通道A进度条
-                float progressA = (float) device.getStrengthA() / device.getStrengthALimit();
+                float progressA = (float) device.getStrengthA().get() / device.getStrengthALimit().get();
                 fill(poseStack,
                         infoX + 20, deviceY + 35,
                         infoX + 20 + (int) ((panelWidth - 40) * progressA), deviceY + 45,
                         0xFF00FFFF);
 
                 // 通道B进度条
-                float progressB = (float) device.getStrengthB() / device.getStrengthBLimit();
+                float progressB = (float) device.getStrengthB().get() / device.getStrengthBLimit().get();
                 fill(poseStack,
                         infoX + 20, deviceY + 60,
                         infoX + 20 + (int) ((panelWidth - 40) * progressB), deviceY + 70,
