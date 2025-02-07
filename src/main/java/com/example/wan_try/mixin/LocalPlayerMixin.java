@@ -35,12 +35,11 @@ public abstract class LocalPlayerMixin extends Player {
     private int forge_1_18_2_40_2_21_mdk$tickCount =0;
 
     @Inject(method = "hurtTo", at = @At("HEAD"))
-
     private void onHurt(float pHealth, CallbackInfo ci) {
-        if(Main.getInstance().getClient() == null) return;
-        boolean a = Main.getInstance().getServer() == null;
+        if(Main.getInstance().getClient() == null) return; //还没按R键初始化,所以要判空
         boolean b = FMLEnvironment.dist.isClient();
         boolean c = CommonConfigHandler.client.get();
+        boolean a = Main.getInstance().getServer() == null || c;
         QrCodeHandler.getQrCodeScreen().setContext(Main.getInstance().getClient().getContext(getStringUUID()));
         if (a && b && c) {
 

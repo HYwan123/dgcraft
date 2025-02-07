@@ -113,6 +113,7 @@ public class FeedbackGenerator {
         for (MinecraftDgLabContext context : contexts) {
             try {
                 CompletableFuture<Object> future = CompletableFuture.supplyAsync(()->{
+
                     setMaxStrength(context);
                     player.displayClientMessage(new TextComponent("你死了"), true);
                     sendDefinedWaveForm(context);

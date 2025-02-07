@@ -50,7 +50,7 @@ public abstract class ClientPacketListenerMixin implements ClientGamePacketListe
         if (CommonConfigHandler.pasento.get()) {
             this.forge_1_18_2_40_2_21_mdk$generator.sendHurtFeedback(player, Main.getInstance().getClient(), damage);
         } else {
-            this.forge_1_18_2_40_2_21_mdk$generator.sendHurtFeedbackWan(player, Main.getInstance().getClient(), damage);
+            this.forge_1_18_2_40_2_21_mdk$generator.    sendHurtFeedbackWan(player, Main.getInstance().getClient(), damage);
         }
 
     }

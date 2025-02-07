@@ -109,8 +109,8 @@ public class DGLabClient<T extends DGLabClient.DGLabContext> extends WebSocketSe
 //        context.setStrengthBWithOutNotify(Integer.parseInt(result.get(1)));
         context.strengthA.getSideA().update(Integer.parseInt(result.get(0)));
         context.strengthB.getSideA().update(Integer.parseInt(result.get(1)));
-        context.strengthA.getSideA().update(Integer.parseInt(result.get(2)));
-        context.strengthA.getSideA().update(Integer.parseInt(result.get(3)));
+        context.strengthALimit.getSideA().update(Integer.parseInt(result.get(2)));
+        context.strengthBLimit.getSideA().update(Integer.parseInt(result.get(3)));
 
     }
 
@@ -207,12 +207,12 @@ public class DGLabClient<T extends DGLabClient.DGLabContext> extends WebSocketSe
             StringBuilder command = new StringBuilder("strength-");
 
             // Send A channel strength
-            command.append("1+2+").append(strengthA);
+            command.append("1+2+").append(strengthA.get());
             this.conn.send(DgLabPack.createMessagePack(clientId, this.targetId, command.toString()).toJson());
 
             // Send B channel strength
             command = new StringBuilder("strength-");
-            command.append("2+2+").append(strengthB);
+            command.append("2+2+").append(strengthB.get());
             this.conn.send(DgLabPack.createMessagePack(clientId, this.targetId, command.toString()).toJson());
             //发送一个数据同步包给这个Context对应的玩家
         }

@@ -8,6 +8,23 @@ import java.util.function.Supplier;
 
 public class DgLabDataUpdatePacket {
     private Integer strengthA;
+
+    public Integer getStrengthA() {
+        return strengthA;
+    }
+
+    public Integer getStrengthB() {
+        return strengthB;
+    }
+
+    public Integer getStrengthBLimit() {
+        return strengthBLimit;
+    }
+
+    public Integer getStrengthALimit() {
+        return strengthALimit;
+    }
+
     private Integer strengthB;
     private Integer strengthALimit;
     private Integer strengthBLimit;

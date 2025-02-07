@@ -91,7 +91,10 @@ public class NetworkHandler {
 
     public static void handleDgLabDataUpdate(DgLabDataUpdatePacket msg) {
         var ctx = new MinecraftDgLabContext(null,null,null);
-
+        ctx.getStrengthA().getSideA().update(msg.getStrengthA());
+        ctx.getStrengthA().getSideA().update(msg.getStrengthB());
+        ctx.getStrengthA().getSideA().update(msg.getStrengthALimit());
+        ctx.getStrengthA().getSideA().update(msg.getStrengthBLimit());
         QrCodeHandler.getQrCodeScreen().setContext(Arrays.stream(new MinecraftDgLabContext[] {ctx}).toList());
     }
 }

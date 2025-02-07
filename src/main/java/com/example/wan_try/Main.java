@@ -26,6 +26,7 @@ import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import com.example.wan_try.network.NetworkHandler;
@@ -108,6 +109,7 @@ public class Main {
 
     @SubscribeEvent
     public void onPlayerDeath(LivingDeathEvent event) {
+        if(CommonConfigHandler.client.get()&& FMLEnvironment.dist.isClient()) return;
         if (event.getEntity() instanceof Player player) {
 
             LOGGER.info("Player {} died, sending death feedback", player.getDisplayName().getString());
@@ -144,6 +146,7 @@ public class Main {
 
     @SubscribeEvent
     public void onPlayerHurt(LivingHurtEvent event) {
+        if(CommonConfigHandler.client.get()) return;
         if (event.getEntity() instanceof Player player) {
             float originalDamage = event.getAmount();
             float reducedDamage = originalDamage * DAMAGE_REDUCTION;
@@ -154,10 +157,10 @@ public class Main {
                 originalDamage
             );
             if(CommonConfigHandler.pasento.get()){
-                feedbackGenerator.sendHurtFeedback(player, client, originalDamage);
+                feedbackGenerator.sendHurtFeedback(player, client, reducedDamage );
             }
             else{
-                feedbackGenerator.sendHurtFeedbackWan(player, client, originalDamage);
+                feedbackGenerator.sendHurtFeedbackWan(player, client, reducedDamage );
             }
 
             event.setAmount(reducedDamage);

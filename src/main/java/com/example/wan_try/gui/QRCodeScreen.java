@@ -208,12 +208,12 @@ public class QRCodeScreen extends Screen {
 
                 // 通道标签和数值
                 String channelALabel = String.format("§7通道 A: §f%d§7/§f%d",
-                        device.getStrengthA(), device.getStrengthALimit());
+                        device.getStrengthA().get(), device.getStrengthALimit().get());
                 drawString(poseStack, this.font, channelALabel,
                         infoX + 20, deviceY + 25, 0xFFFFFF);
 
                 String channelBLabel = String.format("§7通道 B: §f%d§7/§f%d",
-                        device.getStrengthB(), device.getStrengthBLimit());
+                        device.getStrengthB().get(), device.getStrengthBLimit().get());
                 drawString(poseStack, this.font, channelBLabel,
                         infoX + 20, deviceY + 50, 0xFFFFFF);
 

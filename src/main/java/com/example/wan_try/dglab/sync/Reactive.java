@@ -13,6 +13,8 @@ public class Reactive<T> {
     private T value;
     private final Side sideA;
 
+    private final Side sideB;
+
     public Side getSideB() {
         return sideB;
     }
@@ -20,8 +22,6 @@ public class Reactive<T> {
     public Side getSideA() {
         return sideA;
     }
-
-    private final Side sideB;
 
 
     public Reactive(T value) {
