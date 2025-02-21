@@ -1,5 +1,6 @@
 package com.example.wan_try.dglab;
 
+import com.example.wan_try.CommonConfigHandler;
 import com.example.wan_try.Main;
 import com.example.wan_try.QrCodeHandler;
 import com.example.wan_try.network.NetworkHandler;
@@ -260,13 +261,13 @@ public class MinecraftDgLabContext extends DGLabClient.DGLabContext {
      */
     @Override
     public void sendWaveForm(String channel, WaveSequence sequence) {
-        // 添加到活跃波形列表
-        addWaveform(channel, sequence, 1000, 1); // 默认1秒持续时间，优先级1
+        // 添加到活跃波形列表h
+        addWaveform(channel, sequence, CommonConfigHandler.DAMAGE_WAVEFORM_DURATION.get(), 1); // 默认1秒持续时间，优先级1
 
         // 获取合并后的波形
         WaveSequence mergedSequence = getCurrentWaveform(channel);
         if (mergedSequence != null) {
-            super.sendWaveForm(channel, mergedSequence);
+            super.sendWaveForm(channel, sequence);
             LOGGER.debug("Sent merged waveform to channel {}", channel);
         }
     }

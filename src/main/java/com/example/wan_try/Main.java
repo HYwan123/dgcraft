@@ -69,7 +69,7 @@ public class Main {
     }
 
     private void registerConfigs() {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, CommonConfigHandler.CLIENT_CONFIG);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, CommonConfigHandler.CLIENT_CONFIG);
         LOGGER.debug("Registered client config");
     }
 

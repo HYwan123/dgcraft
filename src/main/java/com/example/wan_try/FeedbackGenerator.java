@@ -162,9 +162,20 @@ public class FeedbackGenerator {
     private void sendDefinedWaveForm(MinecraftDgLabContext context) {
         WaveSequence sequence = creatHuntSquareWave();
         context.clearWaveForm("A");
-        context.sendWaveForm("A", sequence);
+        int n=CommonConfigHandler.DAMAGE_WAVEFORM_DURATION.get()/1000;
+        do{
+            context.sendWaveForm("A", sequence);
+        n--;
+        }while(n>0);
+        n=CommonConfigHandler.DAMAGE_WAVEFORM_DURATION.get()/1000;
+
         context.clearWaveForm("B");
+
+        do{
         context.sendWaveForm("B", sequence);
+            n--;
+        }while(n>0);
+
         try {
             sleep(CommonConfigHandler.DAMAGE_WAVEFORM_DURATION.get());
         } catch (InterruptedException e) {
@@ -178,11 +189,23 @@ public class FeedbackGenerator {
                 new int[]{20, 20, 20, 20},
                 new int[]{100, 100, 100, 100}
         );
-        int count= CommonConfigHandler.DAMAGE_WAVEFORM_DURATION.get()/25;
-        for(int i = 0; i < count; i++) {
-            sequence.add(wave);
+
+        if(CommonConfigHandler.DAMAGE_WAVEFORM_DURATION.get()>1000){
+            int count= 1000/25;
+
+            for(int i = 0; i < count; i++) {
+                sequence.add(wave);
+            }
+            return  sequence;
         }
-        return sequence;
+        else{
+            int count= CommonConfigHandler.DAMAGE_WAVEFORM_DURATION.get()/25;
+            for(int i = 0; i < count; i++) {
+                sequence.add(wave);
+            }
+            return sequence;
+        }
+
     }
 
     //wantest end

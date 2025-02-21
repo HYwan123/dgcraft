@@ -251,6 +251,7 @@ public class DGLabClient<T extends DGLabClient.DGLabContext> extends WebSocketSe
 
 
         public void sendWaveForm(String channel, WaveSequence sequence) {
+
             conn.send(DgLabPack.createMessagePack(clientId, targetId, sequence.toMessage(channel)).toJson());
         }
 
