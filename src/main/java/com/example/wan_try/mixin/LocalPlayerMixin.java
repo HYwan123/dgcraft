@@ -32,30 +32,40 @@ public abstract class LocalPlayerMixin extends Player {
     @Shadow public abstract void tick();
 
     @Unique
-    private int forge_1_18_2_40_2_21_mdk$tickCount =0;
+    private int forge_1_18_2_40_2_21_mdk$tickCount = 0;
 
     @Inject(method = "hurtTo", at = @At("HEAD"))
     private void onHurt(float pHealth, CallbackInfo ci) {
-        if(Main.getInstance().getClient() == null) return; //还没按R键初始化,所以要判空
-        boolean b = FMLEnvironment.dist.isClient();
-        boolean c = CommonConfigHandler.client.get();
-        boolean a = Main.getInstance().getServer() == null || c;
+        // Skip processing if we're not in the correct environment
+        if (!FMLEnvironment.dist.isClient() || !CommonConfigHandler.client.get()) {
+            return;
+        }
+        
+        // Skip if client isn't initialized yet
+        if (Main.getInstance().getClient() == null) {
+            return;
+        }
+        
+        // Skip if we're on an integrated server and not configured for client mode
+        if (Main.getInstance().getServer() != null && !CommonConfigHandler.client.get()) {
+            return;
+        }
+        
+        // Update QR code context
         QrCodeHandler.getQrCodeScreen().setContext(Main.getInstance().getClient().getContext(getStringUUID()));
-        if (a && b && c) {
-
-
-            if (this.flashOnSetHealth) {
-                if (pHealth <= 0.0f) {
-                    forge_1_18_2_40_2_21_mdk$onDeath();
+        
+        // Process damage if this is an actual health change
+        if (this.flashOnSetHealth) {
+            if (pHealth <= 0.0f) {
+                forge_1_18_2_40_2_21_mdk$onDeath();
+            } else {
+                float damage = Math.max(getHealth() - pHealth, 0);
+                if (damage > 0) {
+                    forge_1_18_2_40_2_21_mdk$onHurt(damage);
                 }
-                forge_1_18_2_40_2_21_mdk$onHurt(Math.max(getHealth() - pHealth,0));
-                //QrCodeHandler.getQrCodeScreen ().setContext(Main.getInstance().getClient().getContext(getStringUUID()));
-                //System.out.println("🔥 进入 hurtTo()，目标血量：" + pHealth);
-                //System.out.println("💖 当前血量：" + currentHealth);
             }
         }
     }
-//
 //
 //    @Unique private float forge_1_18_2_40_2_21_mdk$lastHealth = getHealth();
 //    @Inject(method = "tick",at=@At("HEAD"))

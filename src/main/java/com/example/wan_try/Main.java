@@ -132,16 +132,6 @@ public class Main {
                 DistExecutor.unsafeRunWhenOn(Dist.CLIENT, ()-> QrCodeHandler::closeScreen);
             }
         }
-//                if(event.getEntity() instanceof Player player) {
-//
-//            DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> () -> {
-//                qrCodeScreen.setContext(null);
-//                qrCodeScreen.setQrCode(null);
-//            });
-//            LOGGER.info(FMLEnvironment.dist.isClient());
-//            LOGGER.info(Minecraft.getInstance().level.isClientSide());
-//            client.getContext(player.getStringUUID()).forEach(DGLabClient.DGLabContext::disconnect);
-//        }
     }
 
     @SubscribeEvent
@@ -251,6 +241,8 @@ public class Main {
             Util.NIL_UUID
         );
     }
+
+
 
     // Getter方法
     public static Main getInstance() {
