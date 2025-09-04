@@ -1,9 +1,20 @@
 pluginManagement {
     repositories {
-        maven { url = 'https://maven.parchmentmc.org' } // Add this line
-        maven {url="repo.spongepowered.org/maven"}
-        maven { url = 'https://maven.minecraftforge.net' }
+        maven { 
+            name = 'MinecraftForge'
+            url = 'https://maven.minecraftforge.net' 
+        }
+        maven { 
+            name = 'ParchmentMC'
+            url = 'https://maven.parchmentmc.org' 
+        }
+        maven { 
+            name = 'Sponge'
+            url = 'https://repo.spongepowered.org/maven' 
+        }
+        gradlePluginPortal()
         mavenCentral()
     }
-
 }
+
+rootProject.name = 'dgcraft'

@@ -1,0 +1,79 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allow manual trigger
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
+    - name: Setup Gradle
+      uses: gradle/gradle-build-action@v2
+      with:
+        gradle-version: wrapper
+        
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+      
+    - name: Build with Gradle
+      run: ./gradlew clean build --no-daemon
+      
+    - name: List build artifacts
+      run: |
+        echo "Build directory contents:"
+        find build -name "*.jar" -type f | head -20 || echo "No JAR files found in build directory"
+        
+    - name: Get project version
+      id: version
+      run: |
+        VERSION=$(./gradlew properties --no-daemon --console=plain -q | grep "^version:" | awk '{print $2}')
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Project version: $VERSION"
+        
+    - name: Create release tag
+      id: tag
+      run: |
+        TAG="v${{ steps.version.outputs.version }}"
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "Release tag: $TAG"
+        
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.tag.outputs.tag }}
+        name: Release ${{ steps.tag.outputs.tag }}
+        body: |
+          Automated release for dgcraft mod.
+          
+          **Changes:**
+          - Built from commit: ${{ github.sha }}
+          - Version: ${{ steps.version.outputs.version }}
+          
+          **Installation:**
+          1. Download the JAR file(s) below
+          2. Place in your Minecraft mods folder
+          3. Ensure you have Minecraft Forge 1.18.2 installed
+        draft: false
+        prerelease: false
+        files: |
+          build/libs/*.jar
+        fail_on_unmatched_files: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
