@@ -21,5 +21,8 @@ build
 eclipse
 run
 
+# Java class files
+*.class
+
 # Files from Forge MDK
 forge*changelog.txt
