@@ -99,8 +99,19 @@ public class DGLabClient<T extends DGLabClient.DGLabContext> extends WebSocketSe
     private void onMsg(WebSocket conn, DgLabPack pack) {
         // Handle regular messages
         System.out.println("Received message from " + pack.getTargetId() + ": " + pack.getMessage());
-        resolveStrength(pack.getMessage(), map.get(conn));
-        System.out.println(map.get(conn));
+        
+        String message = pack.getMessage();
+        T context = map.get(conn);
+        
+        if (message != null && message.startsWith("feedback-")) {
+            // Handle feedback messages
+            handleFeedback(message, context);
+        } else {
+            // Handle strength and other messages
+            resolveStrength(message, context);
+        }
+        
+        System.out.println(context);
     }
 
     private void resolveStrength(String rawStrength, DGLabContext context) {
@@ -112,6 +123,18 @@ public class DGLabClient<T extends DGLabClient.DGLabContext> extends WebSocketSe
         context.strengthALimit.getSideA().update(Integer.parseInt(result.get(2)));
         context.strengthBLimit.getSideA().update(Integer.parseInt(result.get(3)));
 
+    }
+
+    private void handleFeedback(String feedbackMessage, DGLabContext context) {
+        // Handle APP feedback data
+        System.out.println("Processing feedback: " + feedbackMessage);
+        // Extract feedback intensity from message format "feedback-x"
+        if (feedbackMessage.contains("-")) {
+            String feedbackLevel = feedbackMessage.split("-")[1];
+            System.out.println("Feedback level: " + feedbackLevel);
+            // TODO: Update UI to display APP user feedback based on feedbackLevel
+            // This could involve updating some visual indicator or triggering specific responses
+        }
     }
 
     @Override
